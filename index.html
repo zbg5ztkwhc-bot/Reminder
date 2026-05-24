@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Privacy-First PDF Compressor · No Cache · No Data Persistence</title>
+    <title>Privacy-First PDF Compressor · Created by Mahmoud Hamouda</title>
+    <!-- Anti-cache meta tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- PDF.js core and worker -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <!-- jspdf for merging -->
@@ -39,6 +43,7 @@
             color: white;
             padding: 28px 32px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -54,6 +59,17 @@
             padding: 4px 14px;
             font-size: 0.7rem;
             margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .creator-tag {
+            position: absolute;
+            bottom: 12px;
+            right: 20px;
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
             font-weight: 500;
         }
 
@@ -99,7 +115,7 @@
             color: #1e40af;
         }
 
-        /* Privacy toggle card */
+        /* Privacy panel */
         .privacy-panel {
             background: #fef9e3;
             border: 1px solid #fde047;
@@ -270,6 +286,16 @@
             transform: none;
         }
 
+        button.whatsapp {
+            background: #25D366;
+            box-shadow: none;
+        }
+
+        button.whatsapp:hover {
+            background: #128C7E;
+            transform: scale(1.02);
+        }
+
         button:disabled {
             opacity: 0.55;
             cursor: not-allowed;
@@ -321,6 +347,45 @@
             color: #475569;
         }
 
+        .contact-bar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .credit {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .credit strong {
+            color: #a78bfa;
+        }
+
+        .whatsapp-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #25D366;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .whatsapp-link:hover {
+            background: #128C7E;
+            transform: scale(1.02);
+        }
+
         footer {
             text-align: center;
             font-size: 0.7rem;
@@ -333,6 +398,9 @@
         @media (max-width: 640px) {
             .content { padding: 20px; }
             .privacy-panel { flex-direction: column; align-items: flex-start; }
+            .contact-bar { flex-direction: column; text-align: center; }
+            .creator-tag { position: static; margin-top: 10px; display: inline-block; }
+            .header { padding-bottom: 20px; }
         }
     </style>
 </head>
@@ -343,6 +411,7 @@
             <h1>🔒 Privacy-First PDF Compressor</h1>
             <p>Zero cache · No site data persistence · Local processing</p>
             <div class="privacy-badge">🛡️ Session-only | No localStorage | Auto cleanup</div>
+            <div class="creator-tag">Created by Mahmoud Hamouda</div>
         </div>
         <div class="content">
             <!-- Upload zone -->
@@ -415,71 +484,74 @@
                 🛡️ Privacy mode ON: No cache, no site data. Upload PDF → choose mode → compress.
             </div>
         </div>
+
+        <!-- Contact Bar with WhatsApp API and Creator Credit -->
+        <div class="contact-bar">
+            <div class="credit">
+                👨‍💻 Developed by <strong>Mahmoud Hamouda</strong> | © 2024 All rights reserved
+            </div>
+            <a href="https://wa.me/966564700174" target="_blank" class="whatsapp-link" id="whatsappLink">
+                💬 Contact on WhatsApp
+            </a>
+        </div>
         <footer>🔐 All processing in-memory only. Privacy mode prevents disk cache, localStorage, IndexedDB, and service workers. Refresh = complete data wipe.</footer>
     </div>
 </div>
 
 <script>
-    // -------------------------------
-    // PRIVACY MODE: BLOCK CACHE & SITE DATA PERSISTENCE
-    // -------------------------------
+    // ============================================
+    // COMPLETE CACHE & SITE DATA PREVENTION
+    // ============================================
     (function enforcePrivacyMode() {
-        // 1. Prevent localStorage / sessionStorage writes if privacy mode enabled
-        const originalSetItem = Storage.prototype.setItem;
-        const originalRemoveItem = Storage.prototype.removeItem;
-        let privacyActive = true;  // default active
+        let privacyActive = true;
         
-        function blockStorageAccess(method, args) {
-            if (privacyActive && (method === 'setItem' || method === 'removeItem' || method === 'clear')) {
-                console.warn(`[PrivacyGuard] Blocked ${method} on storage - no persistent cache allowed`);
-                return; // silently block
-            }
-            return originalSetItem.apply(this, args);
-        }
-        
-        Storage.prototype.setItem = function(...args) {
-            if (privacyActive) return;
-            return originalSetItem.apply(this, args);
+        // Block localStorage completely
+        Storage.prototype.getItem = function() { 
+            console.warn('[PrivacyGuard] localStorage.getItem blocked'); 
+            return null; 
         };
-        Storage.prototype.removeItem = function(...args) {
-            if (privacyActive) return;
-            return originalRemoveItem.apply(this, args);
+        Storage.prototype.setItem = function() { 
+            console.warn('[PrivacyGuard] localStorage.setItem blocked'); 
+            return; 
         };
-        Storage.prototype.clear = function() {
-            if (privacyActive) return;
-            return originalSetItem.call(this);
+        Storage.prototype.removeItem = function() { 
+            console.warn('[PrivacyGuard] localStorage.removeItem blocked'); 
+            return; 
+        };
+        Storage.prototype.clear = function() { 
+            console.warn('[PrivacyGuard] localStorage.clear blocked'); 
+            return; 
         };
         
-        // 2. Override IndexedDB (disable)
+        // Block sessionStorage
+        sessionStorage.getItem = function() { return null; };
+        sessionStorage.setItem = function() { return; };
+        sessionStorage.removeItem = function() { return; };
+        sessionStorage.clear = function() { return; };
+        
+        // Block IndexedDB
         if (window.indexedDB) {
-            const originalOpen = window.indexedDB.open;
             window.indexedDB.open = function() {
-                if (privacyActive) {
-                    console.warn("[PrivacyGuard] IndexedDB blocked (no persistent site data)");
-                    return null;
-                }
-                return originalOpen.apply(this, arguments);
+                console.warn("[PrivacyGuard] IndexedDB blocked");
+                return null;
             };
+            window.indexedDB.deleteDatabase = function() { return; };
         }
         
-        // 3. Disable Service Worker registration (prevents caching)
+        // Disable Service Worker
         if (navigator.serviceWorker && navigator.serviceWorker.register) {
-            const originalReg = navigator.serviceWorker.register;
             navigator.serviceWorker.register = function() {
-                if (privacyActive) {
-                    console.warn("[PrivacyGuard] ServiceWorker registration blocked");
-                    return Promise.reject(new Error("ServiceWorker disabled by Privacy Mode"));
-                }
-                return originalReg.apply(this, arguments);
+                console.warn("[PrivacyGuard] ServiceWorker blocked");
+                return Promise.reject(new Error("ServiceWorker disabled"));
             };
         }
         
-        // 4. Clear existing caches if any (on start)
+        // Clear existing caches
         if ('caches' in window) {
             caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
         }
         
-        // 5. Prevent HTTP cache via fetch override (optional meta)
+        // Prevent HTTP cache
         const originalFetch = window.fetch;
         window.fetch = function(...args) {
             let options = args[1] || {};
@@ -488,13 +560,13 @@
             return originalFetch.call(this, args[0], options);
         };
         
-        // toggle function to update privacyActive flag
+        // Clear any existing data
+        try { localStorage.clear(); sessionStorage.clear(); } catch(e) {}
+        
         window.setPrivacyMode = (enabled) => {
             privacyActive = enabled;
             if (enabled) {
-                // Clear any residual storage data
-                try { localStorage.clear(); } catch(e) {}
-                try { sessionStorage.clear(); } catch(e) {}
+                try { localStorage.clear(); sessionStorage.clear(); } catch(e) {}
                 if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
             }
         };
@@ -502,6 +574,11 @@
     
     // PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    
+    // WhatsApp API Link
+    const whatsappLink = document.getElementById('whatsappLink');
+    const whatsappNumber = "966564700174";
+    whatsappLink.href = `https://wa.me/${whatsappNumber}?text=Hello%20Mahmoud%20Hamouda%2C%20I%20have%20a%20question%20about%20the%20PDF%20Compressor%20tool.`;
     
     // ---------- STATE (only memory, no persistence) ----------
     let originalPdfArrayBuffer = null;
@@ -564,11 +641,10 @@
         fileNameDisplay.textContent = "Click or drag PDF (no data saved)";
         setStatusMessage("🧹 Session cleared. All PDF data wiped from memory. Privacy mode active.", false);
         hideProgress();
-        // additionally clear any lingering object URLs
         if (window._dummyUrl) URL.revokeObjectURL(window._dummyUrl);
-        // Ensure storage is blocked again
         if (privacyToggle && privacyToggle.checked) {
             try { localStorage.clear(); sessionStorage.clear(); } catch(e) {}
+            if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
         }
     }
     
@@ -600,154 +676,4 @@
     }
     
     // Mode selection
-    function initModeSelection() {
-        const cards = document.querySelectorAll('.mode-card');
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                const mode = card.dataset.mode;
-                if (mode && modesConfig[mode]) {
-                    selectedMode = mode;
-                    cards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    if (processedBlob) {
-                        processedBlob = null;
-                        downloadBtn.disabled = true;
-                        if (originalPdfArrayBuffer) setStatusMessage(`⚙️ Mode changed to ${modesConfig[selectedMode].name}. Re-compress.`);
-                    } else if (originalPdfArrayBuffer) {
-                        setStatusMessage(`🔄 Mode: ${modesConfig[selectedMode].name}. Ready.`);
-                    }
-                }
-            });
-        });
-        document.querySelector('.mode-card[data-mode="premium"]').classList.add('selected');
-        selectedMode = "premium";
-    }
-    
-    // Compression engine
-    async function compressPDF() {
-        if (!originalPdfArrayBuffer) {
-            setStatusMessage("⚠️ No PDF loaded. Upload a file first.", true);
-            return;
-        }
-        if (isProcessing) return;
-        
-        const mode = modesConfig[selectedMode];
-        const scale = mode.scale;
-        const jpegQuality = mode.jpegQuality;
-        const percentRes = Math.round(scale * 100);
-        
-        isProcessing = true;
-        compressBtn.disabled = true;
-        downloadBtn.disabled = true;
-        updateProgress(3, `🔒 Privacy mode: ${privacyToggle.checked ? 'ON (no cache)' : 'OFF'}. Compressing ${mode.name}...`);
-        
-        try {
-            const loadingTask = pdfjsLib.getDocument({ data: originalPdfArrayBuffer.slice(0), useSystemFonts: true });
-            const pdfDoc = await loadingTask.promise;
-            const numPages = pdfDoc.numPages;
-            updateProgress(8, `📖 ${numPages} pages. Rendering with ${percentRes}% resolution impact.`);
-            
-            const pageImages = [];
-            for (let i = 1; i <= numPages; i++) {
-                const progress = 8 + (i / numPages) * 70;
-                updateProgress(progress, `🎨 Page ${i}/${numPages} · ${mode.name}`);
-                const page = await pdfDoc.getPage(i);
-                const viewport = page.getViewport({ scale: scale });
-                const canvas = document.createElement('canvas');
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                const ctx = canvas.getContext('2d');
-                await page.render({ canvasContext: ctx, viewport: viewport, background: 'white' }).promise;
-                let imageData;
-                try {
-                    imageData = canvas.toDataURL(jpegQuality >= 0.9 ? 'image/webp' : 'image/jpeg', jpegQuality);
-                } catch(e) {
-                    imageData = canvas.toDataURL('image/jpeg', jpegQuality);
-                }
-                pageImages.push(imageData);
-                if (i % 3 === 0) await new Promise(r => setTimeout(r, 2));
-            }
-            
-            updateProgress(82, `📦 Building final PDF ...`);
-            const { jsPDF } = window.jspdf;
-            let finalPDF = null;
-            for (let idx = 0; idx < pageImages.length; idx++) {
-                const img = new Image();
-                await new Promise((resolve) => { img.onload = resolve; img.src = pageImages[idx]; });
-                const w = img.width, h = img.height;
-                if (idx === 0) {
-                    finalPDF = new jsPDF({ unit: 'pt', format: [w, h], orientation: w >= h ? 'landscape' : 'portrait' });
-                } else {
-                    finalPDF.addPage([w, h], w >= h ? 'l' : 'p');
-                }
-                finalPDF.addImage(pageImages[idx], 'JPEG', 0, 0, w, h, undefined, 'FAST');
-            }
-            const pdfBlob = finalPDF.output('blob');
-            processedBlob = pdfBlob;
-            downloadBtn.disabled = false;
-            const origMB = (originalPdfArrayBuffer.byteLength / 1048576).toFixed(2);
-            const newMB = (pdfBlob.size / 1048576).toFixed(2);
-            const saved = ((1 - pdfBlob.size / originalPdfArrayBuffer.byteLength) * 100).toFixed(1);
-            updateProgress(100, `✅ Done! ${origMB}MB → ${newMB}MB (${saved}% saved).`);
-            setStatusMessage(`✅ ${mode.name}: ${origMB}MB → ${newMB}MB (${saved}% smaller). Resolution: ${mode.resolutionDesc}. Privacy intact.`, false, true);
-            setTimeout(() => hideProgress(), 2000);
-        } catch (err) {
-            hideProgress();
-            setStatusMessage(`❌ Compression error: ${err.message || err}`, true);
-            processedBlob = null;
-        } finally {
-            isProcessing = false;
-            if (originalPdfArrayBuffer && !isProcessing) compressBtn.disabled = false;
-        }
-    }
-    
-    function download() {
-        if (!processedBlob) { setStatusMessage("No compressed PDF. Run compression first.", true); return; }
-        const url = URL.createObjectURL(processedBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = currentFileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        setStatusMessage(`📥 Downloaded: ${currentFileName} (session-only, no cache stored).`);
-    }
-    
-    // Privacy toggle event: updates flag and blocks storage
-    privacyToggle.addEventListener('change', (e) => {
-        const enabled = e.target.checked;
-        if (window.setPrivacyMode) window.setPrivacyMode(enabled);
-        if (enabled) {
-            try { localStorage.clear(); sessionStorage.clear(); } catch(ign) {}
-            if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-            setStatusMessage("🛡️ Privacy mode ON — cache, localStorage, IndexedDB & Service Workers blocked.", false);
-        } else {
-            setStatusMessage("⚠️ Privacy mode OFF — site data may be cached. Recommend keeping ON for security.", false);
-        }
-        // optional: clear current file session for safety
-        fullSessionReset();
-    });
-    
-    // Event listeners
-    uploadZone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]); });
-    uploadZone.addEventListener('dragover', (e) => e.preventDefault());
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (file && file.type === 'application/pdf') handleFile(file);
-        else setStatusMessage("❌ Drop a PDF file.", true);
-    });
-    compressBtn.addEventListener('click', compressPDF);
-    downloadBtn.addEventListener('click', download);
-    clearSessionBtn.addEventListener('click', fullSessionReset);
-    
-    initModeSelection();
-    // initial privacy enforcement
-    if (privacyToggle.checked) {
-        if (window.setPrivacyMode) window.setPrivacyMode(true);
-        try { localStorage.clear(); sessionStorage.clear(); } catch(e) {}
-    }
-    setStatusMessage("🛡️ Privacy mode active: No cache, no site data. Upload your PDF → select mode → compress securely.");
-</script>
-</body>
-</html>
+    function initMode

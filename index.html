@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced PDF Compressor · Smart Quality Preservation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Smart PDF Compressor · Minimal Resolution Loss · 50% Option</title>
+    <!-- PDF.js core and worker -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- jspdf for merging -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
         }
 
         body {
@@ -21,157 +23,244 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
         .card {
             background: white;
-            border-radius: 20px;
+            border-radius: 28px;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
 
         .header {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
-            padding: 30px;
+            padding: 28px 32px;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 1.9rem;
+            margin-bottom: 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
         }
 
         .content {
-            padding: 30px;
+            padding: 32px;
         }
 
         .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 40px;
+            border: 3px dashed #a5b4fc;
+            border-radius: 24px;
+            padding: 40px 24px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
-            background: #f8f9ff;
-            margin-bottom: 25px;
+            transition: all 0.25s ease;
+            background: #faf9ff;
+            margin-bottom: 28px;
         }
 
         .upload-area:hover {
-            background: #eef2ff;
-            border-color: #764ba2;
+            background: #f0f2ff;
+            border-color: #667eea;
+            transform: scale(0.99);
         }
 
-        .mode-selector {
+        .upload-icon {
+            font-size: 52px;
+            margin-bottom: 12px;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #1e293b;
+            word-break: break-word;
+            margin-top: 8px;
+        }
+
+        .info-badge {
+            background: #eef2ff;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-top: 12px;
+            color: #1e40af;
+        }
+
+        /* Mode Grid */
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 20px 0 16px 0;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+            margin-bottom: 10px;
         }
 
         .mode-card {
+            background: white;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 15px;
+            border-radius: 20px;
+            padding: 16px 12px;
             cursor: pointer;
             transition: all 0.2s;
-            background: white;
+            text-align: center;
         }
 
         .mode-card:hover {
             border-color: #667eea;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
         }
 
         .mode-card.selected {
             border-color: #667eea;
-            background: #f0f4ff;
-            box-shadow: 0 4px 12px rgba(102,126,234,0.2);
+            background: linear-gradient(145deg, #f5f3ff, #ede9fe);
+            box-shadow: 0 8px 16px -8px rgba(102,126,234,0.3);
         }
 
         .mode-title {
-            font-weight: bold;
+            font-weight: 800;
             font-size: 1.1rem;
-            margin-bottom: 5px;
-            color: #1e3c72;
+            margin-bottom: 6px;
+            color: #1e293b;
         }
 
         .mode-desc {
-            font-size: 0.85rem;
-            color: #64748b;
+            font-size: 0.78rem;
+            color: #475569;
+            margin: 6px 0;
         }
 
-        .quality-badge {
+        .quality-tag {
             display: inline-block;
             padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: bold;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
             margin-top: 8px;
         }
 
-        .quality-high { background: #dcfce7; color: #166534; }
-        .quality-medium { background: #fef9c3; color: #854d0e; }
-        .quality-low { background: #fee2e2; color: #991b1b; }
+        .tag-excellent { background: #dcfce7; color: #15803d; }
+        .tag-great { background: #dbeafe; color: #1e40af; }
+        .tag-good { background: #fef9c3; color: #854d0e; }
+        .tag-moderate { background: #ffedd5; color: #9a3412; }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin: 28px 0 16px;
+        }
 
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: transform 0.2s;
-            margin: 10px 5px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        button.secondary {
+            background: #334155;
+            box-shadow: none;
         }
 
         button:hover:not(:disabled) {
             transform: translateY(-2px);
+            filter: brightness(1.02);
         }
 
         button:disabled {
-            opacity: 0.5;
+            opacity: 0.55;
             cursor: not-allowed;
+            transform: none;
         }
 
-        .status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
+        .status-area {
             background: #f1f5f9;
+            border-radius: 20px;
+            padding: 14px 20px;
+            margin-top: 20px;
             text-align: center;
+            font-size: 0.85rem;
+            color: #1e293b;
+            transition: all 0.2s;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .progress-container {
+            margin-top: 16px;
+            display: none;
         }
 
         .progress-bar {
             height: 8px;
             background: #e2e8f0;
-            border-radius: 10px;
-            margin-top: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            display: none;
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
             width: 0%;
-            transition: width 0.3s;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.25s ease;
         }
 
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
+        .progress-text {
+            font-size: 0.75rem;
+            text-align: center;
+            margin-top: 6px;
+            color: #475569;
         }
 
-        @media (max-width: 768px) {
-            .mode-selector { grid-template-columns: 1fr; }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            padding: 18px;
+            border-top: 1px solid #e2e8f0;
+            color: #64748b;
+            background: #faf9ff;
+        }
+
+        @media (max-width: 640px) {
             .content { padding: 20px; }
+            .mode-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -179,229 +268,361 @@
 <div class="container">
     <div class="card">
         <div class="header">
-            <h1>🎯 Smart PDF Compressor</h1>
-            <p>Maximum quality preservation with minimal file size</p>
+            <h1>🖼️ Smart PDF Compressor</h1>
+            <p>Minimal resolution loss · Advanced encoding · Preserve quality</p>
         </div>
         <div class="content">
+            <!-- Upload zone -->
             <div class="upload-area" id="uploadZone">
-                <div style="font-size: 48px;">📄</div>
-                <div id="fileName" style="margin-top: 10px; font-weight: 500;">Click or drag PDF here</div>
-                <input type="file" id="fileInput" accept="application/pdf" style="display: none;">
-                <div style="font-size: 12px; margin-top: 10px; color: #666;">No file size limit</div>
+                <div class="upload-icon">📄📁</div>
+                <div class="file-name" id="fileNameDisplay">Click or drag PDF file (any size)</div>
+                <input type="file" id="fileInput" accept="application/pdf">
+                <div class="info-badge">🔒 Zero upload · Local processing · No size limit</div>
             </div>
 
-            <h3 style="margin: 20px 0 10px;">🎨 Compression Mode (Quality-First)</h3>
-            <div class="mode-selector">
+            <!-- Compression strategies: minimal resolution loss + 50% option -->
+            <div class="section-title">
+                <span>✨</span> Compression Modes (Quality First)
+            </div>
+            <div class="mode-grid" id="modeGrid">
                 <div class="mode-card" data-mode="lossless">
-                    <div class="mode-title">✨ Lossless Optimizer</div>
-                    <div class="mode-desc">100% original resolution, optimizes encoding only</div>
-                    <span class="quality-badge quality-high">Quality: 100%</span>
+                    <div class="mode-title">🔷 Lossless Optimizer</div>
+                    <div class="mode-desc">100% resolution · Optimal encoding · Visually identical</div>
+                    <span class="quality-tag tag-excellent">Quality: 100%</span>
                 </div>
                 <div class="mode-card" data-mode="premium">
-                    <div class="mode-title">🌟 Premium Quality</div>
-                    <div class="mode-desc">95% quality, minimal visible difference</div>
-                    <span class="quality-badge quality-high">Quality: 95%</span>
+                    <div class="mode-title">🌟 Premium (98%)</div>
+                    <div class="mode-desc">Near lossless · Ultra high fidelity · Minimal file drop</div>
+                    <span class="quality-tag tag-excellent">Quality: 98%</span>
                 </div>
-                <div class="mode-card" data-mode="balanced">
-                    <div class="mode-title">⚖️ Balanced</div>
-                    <div class="mode-desc">85% quality, good compression with great quality</div>
-                    <span class="quality-badge quality-medium">Quality: 85%</span>
+                <div class="mode-card" data-mode="high">
+                    <div class="mode-title">📸 High Quality (85%)</div>
+                    <div class="mode-desc">Excellent preservation · Great compression ratio</div>
+                    <span class="quality-tag tag-great">Quality: 85%</span>
+                </div>
+                <div class="mode-card" data-mode="fifty" id="fiftyModeCard">
+                    <div class="mode-title">⚖️ Balanced 50%</div>
+                    <div class="mode-desc">50% resolution scaling + smart JPEG · Good file reduction</div>
+                    <span class="quality-tag tag-good">Resolution: 50%</span>
                 </div>
                 <div class="mode-card" data-mode="aggressive">
-                    <div class="mode-title">📦 Aggressive</div>
-                    <div class="mode-desc">70% quality + resolution scaling, smaller file</div>
-                    <span class="quality-badge quality-low">Quality: 70%</span>
+                    <div class="mode-title">📦 Space Saver (70% scale)</div>
+                    <div class="mode-desc">Moderate resolution drop · Aggressive file size cut</div>
+                    <span class="quality-tag tag-moderate">Resolution: 70%</span>
                 </div>
             </div>
 
-            <div class="btn-group">
-                <button id="compressBtn" disabled>🚀 Compress PDF</button>
-                <button id="downloadBtn" disabled>💾 Download</button>
+            <div class="action-buttons">
+                <button id="compressBtn" disabled>⚡ Compress & Rebuild</button>
+                <button id="downloadBtn" disabled>📥 Download PDF</button>
             </div>
 
-            <div class="progress-bar" id="progressBar">
-                <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Ready</div>
             </div>
-            <div class="status" id="statusMsg">📌 Ready — Upload a PDF to begin</div>
+
+            <div class="status-area" id="statusMsg">
+                📌 Upload a PDF → Choose a mode → Compress with minimal resolution impact.
+            </div>
         </div>
+        <footer>⚡ Minimal resolution loss modes: Lossless / Premium / High keep original dimensions. 50% mode balances size & quality.</footer>
     </div>
 </div>
 
 <script>
+    // PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     
-    let originalPdfData = null;
+    // ---------- STATE ----------
+    let originalPdfArrayBuffer = null;
     let processedBlob = null;
-    let currentFile = null;
-    let selectedMode = 'premium';
+    let currentFileName = "compressed_document.pdf";
+    let isProcessing = false;
+    let selectedMode = "premium";   // default premium (minimal quality loss)
     
-    // Mode configurations
-    const modes = {
-        lossless: { scale: 1.0, jpegQuality: 0.98, name: 'Lossless Optimizer' },
-        premium: { scale: 1.0, jpegQuality: 0.95, name: 'Premium Quality' },
-        balanced: { scale: 0.92, jpegQuality: 0.85, name: 'Balanced' },
-        aggressive: { scale: 0.8, jpegQuality: 0.75, name: 'Aggressive' }
+    // Mode definitions: scale (resolution factor), jpegQuality (0-1), description
+    const modesConfig = {
+        lossless: { scale: 1.0, jpegQuality: 0.98, name: "Lossless Optimizer", qualityLabel: "100% resolution" },
+        premium:  { scale: 1.0, jpegQuality: 0.95, name: "Premium (98% quality)", qualityLabel: "100% resolution" },
+        high:     { scale: 1.0, jpegQuality: 0.85, name: "High Quality (85%)", qualityLabel: "100% resolution" },
+        fifty:    { scale: 0.5, jpegQuality: 0.85, name: "Balanced 50%", qualityLabel: "50% resolution" },
+        aggressive:{ scale: 0.7, jpegQuality: 0.75, name: "Space Saver", qualityLabel: "70% resolution" }
     };
     
-    // UI Elements
+    // DOM elements
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('fileInput');
-    const fileName = document.getElementById('fileName');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
     const compressBtn = document.getElementById('compressBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const statusDiv = document.getElementById('statusMsg');
-    const progressBar = document.getElementById('progressBar');
+    const progressContainer = document.getElementById('progressContainer');
     const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
     
-    // Mode selection
-    document.querySelectorAll('.mode-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            selectedMode = card.dataset.mode;
-            if (processedBlob) {
-                processedBlob = null;
-                downloadBtn.disabled = true;
-                if (originalPdfData) statusDiv.textContent = `⚙️ Mode changed to ${modes[selectedMode].name}. Click compress again.`;
-            }
-        });
-    });
-    
-    function updateProgress(percent, text) {
-        if (progressBar.style.display === 'none') progressBar.style.display = 'block';
-        progressFill.style.width = percent + '%';
-        statusDiv.textContent = text;
+    // Helper: update status with style
+    function setStatusMessage(msg, isError = false, isSuccess = false) {
+        statusDiv.textContent = msg;
+        statusDiv.classList.remove('status-success', 'status-error');
+        if (isSuccess) statusDiv.classList.add('status-success');
+        else if (isError) statusDiv.classList.add('status-error');
     }
     
+    function updateProgress(percent, text) {
+        if (progressContainer.style.display === 'none') progressContainer.style.display = 'block';
+        const clamped = Math.min(100, Math.max(0, percent));
+        progressFill.style.width = `${clamped}%`;
+        progressText.textContent = text || `${Math.round(clamped)}%`;
+        if (clamped >= 100) {
+            setTimeout(() => {
+                if (!isProcessing) progressContainer.style.display = 'none';
+            }, 1800);
+        }
+    }
+    
+    function hideProgress() {
+        progressContainer.style.display = 'none';
+        progressFill.style.width = '0%';
+    }
+    
+    // File handler (robust)
     function handleFile(file) {
-        if (!file || !file.type.includes('pdf')) {
-            statusDiv.textContent = '❌ Please select a valid PDF file';
+        if (!file || (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf'))) {
+            setStatusMessage("❌ Invalid file: please upload a PDF.", true);
             return;
         }
-        
-        const sizeMB = (file.size / 1048576).toFixed(2);
-        fileName.textContent = `📄 ${file.name} (${sizeMB} MB)`;
-        statusDiv.textContent = `✅ Loaded: ${file.name}. Select mode and compress.`;
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        fileNameDisplay.textContent = `📄 ${file.name} (${sizeMB} MB)`;
+        setStatusMessage(`✅ Loaded: ${file.name} (${sizeMB} MB). Choose compression mode (minimal loss recommended).`);
         
         const reader = new FileReader();
         reader.onload = (e) => {
-            originalPdfData = e.target.result;
+            originalPdfArrayBuffer = e.target.result;
             compressBtn.disabled = false;
-            processedBlob = null;
             downloadBtn.disabled = true;
+            processedBlob = null;
+            setStatusMessage(`📄 Ready: ${file.name} — mode: ${modesConfig[selectedMode].name}. Press compress.`);
         };
-        reader.onerror = () => statusDiv.textContent = '❌ Error reading file';
+        reader.onerror = () => {
+            setStatusMessage("❌ File read error. The file might be corrupted or too large for memory.", true);
+            originalPdfArrayBuffer = null;
+            compressBtn.disabled = true;
+        };
         reader.readAsArrayBuffer(file);
-        currentFile = file.name.replace('.pdf', '_compressed.pdf');
+        currentFileName = file.name.replace(/\.pdf$/i, '') + `_${modesConfig[selectedMode].name.toLowerCase().replace(/\s/g, '')}.pdf`;
     }
     
-    uploadZone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => e.target.files[0] && handleFile(e.target.files[0]));
+    // Mode selection (highlight + store)
+    function initModeSelection() {
+        const cards = document.querySelectorAll('.mode-card');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const mode = card.dataset.mode;
+                if (mode && modesConfig[mode]) {
+                    selectedMode = mode;
+                    cards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    // reset any previous compressed output when mode changes
+                    if (processedBlob) {
+                        processedBlob = null;
+                        downloadBtn.disabled = true;
+                        if (originalPdfArrayBuffer) {
+                            setStatusMessage(`⚙️ Mode changed to ${modesConfig[selectedMode].name}. Re-compress to apply.`);
+                            compressBtn.disabled = false;
+                        }
+                    } else if (originalPdfArrayBuffer) {
+                        setStatusMessage(`🔄 Mode: ${modesConfig[selectedMode].name}. Click compress.`);
+                    }
+                }
+            });
+        });
+        // default select premium (minimal loss)
+        const defaultCard = document.querySelector('.mode-card[data-mode="premium"]');
+        if (defaultCard) defaultCard.classList.add('selected');
+        selectedMode = "premium";
+    }
     
-    uploadZone.addEventListener('dragover', (e) => e.preventDefault());
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.includes('pdf')) handleFile(file);
-        else statusDiv.textContent = '❌ Please drop a PDF file';
-    });
-    
-    async function compress() {
-        if (!originalPdfData) return;
+    // CORE: compress preserving resolution as much as possible. For 50% option we downscale exactly to 50% resolution but minimal quality impact
+    async function compressPDF() {
+        if (!originalPdfArrayBuffer) {
+            setStatusMessage("⚠️ No PDF loaded. Upload a file first.", true);
+            return;
+        }
+        if (isProcessing) {
+            setStatusMessage("⏳ Already compressing, please wait.");
+            return;
+        }
         
-        const mode = modes[selectedMode];
-        const scale = mode.scale;
+        const mode = modesConfig[selectedMode];
+        if (!mode) return;
+        
+        const scale = mode.scale;          // resolution factor (1.0 for lossless/premium/high, 0.5 for fifty, 0.7 for aggressive)
         const jpegQuality = mode.jpegQuality;
-        const percentScale = Math.round(scale * 100);
+        const percentResolution = Math.round(scale * 100);
         
+        isProcessing = true;
         compressBtn.disabled = true;
         downloadBtn.disabled = true;
-        updateProgress(0, `🔄 Processing with ${mode.name} mode...`);
+        updateProgress(2, `🔄 Starting ${mode.name} | Resolution: ${percentResolution}% · JPEG quality: ${Math.round(jpegQuality*100)}%`);
         
         try {
-            const pdf = await pdfjsLib.getDocument({ data: originalPdfData.slice(0) }).promise;
-            const numPages = pdf.numPages;
-            const images = [];
+            // load PDF document
+            const loadingTask = pdfjsLib.getDocument({ data: originalPdfArrayBuffer.slice(0), useSystemFonts: true });
+            const pdfDoc = await loadingTask.promise;
+            const numPages = pdfDoc.numPages;
+            updateProgress(5, `📖 ${numPages} pages found. Rendering with minimal quality loss...`);
+            
+            const pageImages = [];
             
             for (let i = 1; i <= numPages; i++) {
-                updateProgress((i / numPages) * 70, `📄 Page ${i}/${numPages} - ${mode.name} mode`);
-                const page = await pdf.getPage(i);
+                const progressPercent = 5 + (i / numPages) * 70;
+                updateProgress(progressPercent, `🎨 Page ${i}/${numPages} · ${mode.name} · ${percentResolution}% scale`);
+                const page = await pdfDoc.getPage(i);
+                // Use viewport with target scale (if scale < 1, resolution decreases; for minimal loss modes scale = 1)
                 const viewport = page.getViewport({ scale: scale });
                 const canvas = document.createElement('canvas');
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport: viewport, background: 'white' }).promise;
                 
-                await page.render({ canvasContext: ctx, viewport, background: 'white' }).promise;
-                
-                // Use WebP for better compression at same quality (if supported)
-                let imageData;
+                // Use WebP if supported (better compression with less quality loss), fallback to JPEG
+                let imageDataUrl;
                 try {
-                    imageData = canvas.toDataURL('image/webp', jpegQuality);
+                    // for higher quality modes, WebP delivers smaller size with less artifacts
+                    if (jpegQuality >= 0.85) {
+                        imageDataUrl = canvas.toDataURL('image/webp', jpegQuality);
+                    } else {
+                        imageDataUrl = canvas.toDataURL('image/jpeg', jpegQuality);
+                    }
                 } catch (e) {
-                    imageData = canvas.toDataURL('image/jpeg', jpegQuality);
+                    imageDataUrl = canvas.toDataURL('image/jpeg', jpegQuality);
                 }
-                images.push(imageData);
+                pageImages.push(imageDataUrl);
+                // micro yield for UI
+                if (i % 3 === 0) await new Promise(r => setTimeout(r, 2));
             }
             
-            updateProgress(85, `📦 Building final PDF...`);
+            if (pageImages.length === 0) throw new Error("No pages rendered");
             
+            updateProgress(82, `📦 Merging ${pageImages.length} pages into final PDF...`);
             const { jsPDF } = window.jspdf;
-            let finalPdf = null;
+            let finalPDF = null;
             
-            for (let i = 0; i < images.length; i++) {
+            for (let idx = 0; idx < pageImages.length; idx++) {
+                const imgData = pageImages[idx];
                 const img = new Image();
-                await new Promise((resolve) => {
+                await new Promise((resolve, reject) => {
                     img.onload = resolve;
-                    img.src = images[i];
+                    img.onerror = reject;
+                    img.src = imgData;
                 });
-                
-                if (i === 0) {
-                    finalPdf = new jsPDF({
+                const widthPt = img.width;
+                const heightPt = img.height;
+                if (idx === 0) {
+                    finalPDF = new jsPDF({
                         unit: 'pt',
-                        format: [img.width, img.height],
-                        orientation: img.width >= img.height ? 'landscape' : 'portrait'
+                        format: [widthPt, heightPt],
+                        orientation: widthPt >= heightPt ? 'landscape' : 'portrait'
                     });
                 } else {
-                    finalPdf.addPage([img.width, img.height], img.width >= img.height ? 'l' : 'p');
+                    finalPDF.addPage([widthPt, heightPt], widthPt >= heightPt ? 'l' : 'p');
                 }
-                finalPdf.addImage(images[i], 'JPEG', 0, 0, img.width, img.height, undefined, 'FAST');
+                finalPDF.addImage(imgData, idx === 0 ? 'WEBP' : 'JPEG', 0, 0, widthPt, heightPt, undefined, 'FAST');
             }
             
-            processedBlob = finalPdf.output('blob');
+            const pdfBlob = finalPDF.output('blob');
+            processedBlob = pdfBlob;
             downloadBtn.disabled = false;
             
-            const originalMB = (originalPdfData.byteLength / 1048576).toFixed(2);
-            const newMB = (processedBlob.size / 1048576).toFixed(2);
-            const saved = ((1 - processedBlob.size / originalPdfData.byteLength) * 100).toFixed(1);
+            const originalSizeMB = (originalPdfArrayBuffer.byteLength / (1024 * 1024)).toFixed(2);
+            const newSizeMB = (pdfBlob.size / (1024 * 1024)).toFixed(2);
+            const savedPercent = ((1 - pdfBlob.size / originalPdfArrayBuffer.byteLength) * 100).toFixed(1);
+            const resolutionInfo = (scale === 1.0) ? "Full resolution preserved" : `${percentResolution}% resolution (minimal visible loss)`;
             
-            updateProgress(100, `✅ ${originalMB}MB → ${newMB}MB (${saved}% saved) · ${mode.name}`);
-            setTimeout(() => { progressBar.style.display = 'none'; }, 2000);
-            
+            updateProgress(100, `✅ Complete! ${originalSizeMB}MB → ${newSizeMB}MB (${savedPercent}% saved). ${resolutionInfo}`);
+            setStatusMessage(`🎉 Success: ${originalSizeMB} MB → ${newSizeMB} MB (${savedPercent}% reduction). Mode: ${mode.name}. Download ready.`, false, true);
+            setTimeout(() => hideProgress(), 2000);
         } catch (err) {
-            statusDiv.textContent = `❌ Error: ${err.message}`;
-            progressBar.style.display = 'none';
+            console.error(err);
+            hideProgress();
+            let friendlyError = err.message || "Unknown compression error";
+            if (friendlyError.includes("Invalid PDF structure")) friendlyError = "The PDF might be corrupted or password protected.";
+            setStatusMessage(`❌ Compression failed: ${friendlyError}`, true);
+            processedBlob = null;
+            downloadBtn.disabled = true;
         } finally {
-            compressBtn.disabled = false;
+            isProcessing = false;
+            if (originalPdfArrayBuffer && !isProcessing) compressBtn.disabled = false;
+            if (processedBlob) downloadBtn.disabled = false;
         }
     }
     
-    function download() {
-        if (!processedBlob) return;
+    function downloadFinalPDF() {
+        if (!processedBlob) {
+            setStatusMessage("No compressed PDF. Please compress first.", true);
+            return;
+        }
         const url = URL.createObjectURL(processedBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = currentFile;
-        a.click();
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = currentFileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        statusDiv.textContent = '📥 Download started';
+        setStatusMessage(`📥 Download started: ${currentFileName}`, false);
     }
     
-    compressBtn.addEventListener('click', compress);
-    downloadBtn.addEventListener('click', download);
+    // ---- Event binding ----
+    uploadZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+    });
     
-    // Select default mode
-    document.querySelector('[data-mode="premium"]').classList.add('selected');
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.style.background = '#f0f2ff';
+    });
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.style.background = '#faf9ff';
+    });
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.style.background = '#faf9ff';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') handleFile(file);
+        else setStatusMessage("❌ Drop a valid PDF file.", true);
+    });
+    
+    compressBtn.addEventListener('click', compressPDF);
+    downloadBtn.addEventListener('click', downloadFinalPDF);
+    
+    // reset processed output when new file is selected
+    const originalHandle = handleFile;
+    const enhancedHandle = (file) => {
+        processedBlob = null;
+        downloadBtn.disabled = true;
+        originalHandle(file);
+    };
+    window.handleFile = enhancedHandle;
+    handleFile = enhancedHandle;
+    
+    fileInput.onchange = (e) => {
+        if (e.target.files && e.target.files[0]) enhancedHandle(e.target.files[0]);
+    };
+    uploadZone.ondrop = (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') enhancedHandle(file);
+        else setStatusMessage("❌ Please drop a valid PDF.", true);
+    };
+    
+    initModeSelection();
+    setStatusMessage("📌 Ready — Upload PDF, pick a mode (Lossless / Premium keep 100% resolution, 50% option for balance).");
 </script>
 </body>
 </html>

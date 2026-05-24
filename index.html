@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <!-- jspdf for merging images back into a new PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- html2canvas is NOT used; we use canvas manipulation from pdf.js renders -->
     <style>
         * {
             box-sizing: border-box;
@@ -226,15 +225,15 @@
 <div class="card">
     <div class="header">
         <h1>📄 PDF Image Compressor</h1>
-        <p>Extract · Downscale resolution · Rebuild PDF</p>
+        <p>Extract · Downscale resolution · Rebuild PDF · No file size limits</p>
     </div>
     <div class="content">
         <!-- Upload zone -->
         <div class="upload-area" id="uploadZone">
             <div class="upload-icon">📁📑</div>
-            <div class="file-name" id="fileNameDisplay">Click or drag to upload PDF file</div>
+            <div class="file-name" id="fileNameDisplay">Click or drag to upload PDF file (any size)</div>
             <input type="file" id="fileInput" accept="application/pdf">
-            <div class="info-badge">⬆️ Max 50MB | Multi-page supported</div>
+            <div class="info-badge">⬆️ No file size limit | Multi-page supported</div>
         </div>
 
         <!-- Compression settings -->
@@ -256,9 +255,9 @@
             <button id="downloadBtn" disabled>⬇️ Download Compressed PDF</button>
         </div>
 
-        <div id="statusMsg" class="status-area">📌 Ready — upload a PDF file to start.</div>
+        <div id="statusMsg" class="status-area">📌 Ready — upload a PDF file to start. No size restrictions.</div>
     </div>
-    <footer>Process runs locally in your browser • PDF.js + jsPDF • No data uploaded</footer>
+    <footer>Process runs locally in your browser • PDF.js + jsPDF • No data uploaded • Works with large PDFs (memory dependent)</footer>
 </div>
 
 <script>
@@ -296,23 +295,23 @@
         compressBtn.disabled = true;
         downloadBtn.disabled = true;
         if (!isProcessing) {
-            setStatus("📌 Ready — upload a PDF file to start.");
+            setStatus("📌 Ready — upload a PDF file to start. No size limits.");
         }
     }
 
-    // handle file selection
+    // handle file selection (no size limit)
     function handleFile(file) {
         if (!file || file.type !== 'application/pdf') {
             setStatus("❌ Please select a valid PDF file.", true);
             resetState();
-            fileNameDisplay.textContent = "Click or drag to upload PDF file";
+            fileNameDisplay.textContent = "Click or drag to upload PDF file (any size)";
             return;
         }
-        if (file.size > 80 * 1024 * 1024) {
-            setStatus("⚠️ File exceeds 80MB, may cause performance issues. Try smaller file.", true);
-        }
-        fileNameDisplay.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-        setStatus(`✅ Loaded: ${file.name}. Click "Compress & Rebuild".`, false, false);
+        
+        // Format file size nicely
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        fileNameDisplay.textContent = `📄 ${file.name} (${sizeMB} MB)`;
+        setStatus(`✅ Loaded: ${file.name} (${sizeMB} MB). Click "Compress & Rebuild". Large files may take longer.`, false, false);
         
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -320,10 +319,10 @@
             compressBtn.disabled = false;
             downloadBtn.disabled = true;
             processedPdfBlob = null;
-            setStatus(`📄 "${file.name}" ready. Choose compression percentage and press compress.`);
+            setStatus(`📄 "${file.name}" ready (${sizeMB} MB). Choose compression percentage and press compress.`);
         };
         reader.onerror = () => {
-            setStatus("❌ Failed to read file.", true);
+            setStatus("❌ Failed to read file. The file might be corrupted or too large for browser memory.", true);
             resetState();
         };
         reader.readAsArrayBuffer(file);
@@ -351,7 +350,7 @@
         uploadZone.style.borderColor = '#94a3b8';
         const file = e.dataTransfer.files[0];
         if (file && file.type === 'application/pdf') handleFile(file);
-        else setStatus("❌ Please drop a PDF file.", true);
+        else setStatus("❌ Please drop a valid PDF file.", true);
     });
 
     // Core function: extract all pages, resize images (canvas resolution) according to scale factor, then merge into new PDF
@@ -374,7 +373,7 @@
         isProcessing = true;
         compressBtn.disabled = true;
         downloadBtn.disabled = true;
-        setStatus(`🔄 Processing PDF: Extracting pages & scaling images to ${Math.round(scalePercent*100)}% resolution ... This may take a moment.`);
+        setStatus(`🔄 Processing PDF: Extracting pages & scaling images to ${Math.round(scalePercent*100)}% resolution ... Large files may take a moment.`);
         
         try {
             // Load PDF document from ArrayBuffer
@@ -390,22 +389,8 @@
             for (let i = 1; i <= numPages; i++) {
                 setStatus(`🖼️ Processing page ${i} / ${numPages} ...`);
                 const page = await pdfDoc.getPage(i);
-                // Get original viewport size
-                const originalViewport = page.getViewport({ scale: 1.0 });
-                const origWidth = originalViewport.width;
-                const origHeight = originalViewport.height;
                 
-                // Target dimensions after scaling (resolution reduction)
-                const targetWidth = Math.max(50, Math.floor(origWidth * scalePercent));
-                const targetHeight = Math.max(50, Math.floor(origHeight * scalePercent));
-                
-                // We need high quality render first using scale = 1.0? But we want to downsize to target dimensions.
-                // For best quality: render page at the target scale factor directly? But PDF.js rendering at lower scale may cause loss of text hint?
-                // We'll render page using a scale factor that ensures we get good quality then canvas resize.
-                // Approach: render page at 1x (full vector resolution) then draw scaled down onto a smaller canvas. This yields best downscaled image.
-                // However, for performance on large PDFs we can render exactly at target size by using viewport scale = scalePercent.
-                // Let's use direct render at target scale factor (scalePercent) to avoid huge memory, but it might be slightly less sharp but more efficient.
-                // We choose direct render to target dimensions to keep memory efficient. That's exactly resolution modification.
+                // Render directly at target scale factor (resolution modification)
                 const renderScale = scalePercent;
                 const viewport = page.getViewport({ scale: renderScale });
                 const canvas = document.createElement('canvas');
@@ -419,24 +404,18 @@
                 };
                 await page.render(renderContext).promise;
                 
-                // Now canvas holds the page image at reduced resolution (scalePercent of original)
-                // For extra anti-aliasing smoothness we can keep as is. Convert to JPEG with quality 0.85 to balance file size.
-                // Since we already reduced dimensions, JPEG compression helps file size.
+                // Convert to JPEG with quality 0.85 for optimal file size/quality balance
                 const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
                 pageImages.push(imageDataUrl);
-                // allow UI microtask
-                await new Promise(r => setTimeout(r, 5));
+                // Allow UI to breathe during heavy processing
+                if (i % 5 === 0) await new Promise(r => setTimeout(r, 10));
             }
             
             if (pageImages.length === 0) throw new Error("No pages extracted");
             
             setStatus(`📦 Merging ${pageImages.length} compressed pages into final PDF...`);
             
-            // Use jsPDF to create a new PDF with each image resized to A4 or original aspect ratio? But to keep page dimensions similar to original PDF proportions,
-            // we should match the page size of original PDF dimensions (adjusted due to scaling). However we want final PDF pages to reflect the new image dimensions (which are downscaled)
-            // But maintain aspect ratio exactly as original. So we'll set page size same as the target image dimensions (in points).
-            // jsPDF uses points (1 point = 1/72 inch). Our image dimensions are pixels (at 72 DPI basically). For consistency we'll set page size = image width and height in points.
-            // Since we treat 1px = 1pt when creating pdf, this matches typical browser rendering.
+            // Use jsPDF to create a new PDF with each image sized to match the downscaled dimensions
             const { jsPDF } = window.jspdf;
             
             let finalPdf = null;
@@ -450,7 +429,7 @@
                     img.onerror = () => reject(new Error("Failed to load image data"));
                     img.src = imgDataUrl;
                 });
-                const imgWidthPt = img.width;    // width in points (since canvas pixels @72dpi, 1px = 1pt)
+                const imgWidthPt = img.width;    // width in points (canvas pixels @72dpi, 1px = 1pt)
                 const imgHeightPt = img.height;
                 
                 if (idx === 0) {
@@ -463,7 +442,7 @@
                 } else {
                     finalPdf.addPage([imgWidthPt, imgHeightPt], imgWidthPt >= imgHeightPt ? 'l' : 'p');
                 }
-                // Add image at 0,0 with full width/height, using JPEG format for compression
+                // Add image at 0,0 with full width/height, using JPEG format
                 finalPdf.addImage(imgDataUrl, 'JPEG', 0, 0, imgWidthPt, imgHeightPt, undefined, 'FAST');
             }
             
@@ -473,10 +452,18 @@
             const pdfOutput = finalPdf.output('blob');
             processedPdfBlob = pdfOutput;
             downloadBtn.disabled = false;
-            setStatus(`✅ SUCCESS! Compression complete. New PDF size: ${(pdfOutput.size / 1024).toFixed(1)} KB. Click download.`, false, true);
+            const originalSizeMB = (originalPdfData.byteLength / (1024 * 1024)).toFixed(2);
+            const newSizeMB = (pdfOutput.size / (1024 * 1024)).toFixed(2);
+            setStatus(`✅ SUCCESS! Compression complete. Original: ${originalSizeMB} MB → New: ${newSizeMB} MB (${Math.round((1 - pdfOutput.size/originalPdfData.byteLength)*100)}% reduction). Click download.`, false, true);
         } catch (err) {
             console.error(err);
-            setStatus(`❌ Compression error: ${err.message || err}. Ensure PDF is not corrupted.`, true);
+            let errorMsg = err.message || err;
+            if (errorMsg.includes("Unexpected server response") || errorMsg.includes("worker")) {
+                errorMsg = "PDF.js worker error. Try refreshing or using a simpler PDF.";
+            } else if (errorMsg.includes("Out of memory")) {
+                errorMsg = "The PDF is too large for browser memory. Try a smaller file or lower resolution.";
+            }
+            setStatus(`❌ Compression error: ${errorMsg}`, true);
             processedPdfBlob = null;
             downloadBtn.disabled = true;
         } finally {
@@ -507,35 +494,30 @@
     compressBtn.addEventListener('click', compressAndRebuild);
     downloadBtn.addEventListener('click', downloadPdf);
     
-    // For improved safe reset on re-upload
-    // Modify handleFile to also reset processed state
-    const originalHandle = handleFile;
-    window.handleFile = handleFile;
-    // ensure that when new file is selected, processed blob is cleared
-    const originalFileHandler = handleFile;
+    // Reset processed blob when new file is selected
+    const originalHandleFile = handleFile;
     function enhancedHandleFile(file) {
         processedPdfBlob = null;
         downloadBtn.disabled = true;
-        originalFileHandler(file);
+        originalHandleFile(file);
     }
     window.handleFile = enhancedHandleFile;
     handleFile = enhancedHandleFile;
     
-    // patch the event listeners to use new handle file
+    // Rebind events to use enhanced handler
     fileInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) enhancedHandleFile(e.target.files[0]);
     });
-    // Also rewrite drop event
-    const oldDropHandler = uploadZone.ondrop;
+    // Also handle drop
     uploadZone.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadZone.style.background = '#f8fafc';
         const file = e.dataTransfer.files[0];
         if (file && file.type === 'application/pdf') enhancedHandleFile(file);
-        else setStatus("❌ Please drop a PDF file.", true);
+        else setStatus("❌ Please drop a valid PDF file.", true);
     });
     
-    // reset processedBlob on quality change (optional)
+    // Reset processed blob on quality change to remind user to re-compress
     qualitySelect.addEventListener('change', () => {
         if (processedPdfBlob) {
             processedPdfBlob = null;
@@ -547,8 +529,68 @@
         }
     });
     
-    // add robustness: if PDF load fails early due to worker, better guidance.
-    console.log("PDF compressor ready — all features active");
+    // Additional memory warning for extremely large files (just informative)
+    function showMemoryWarningIfNeeded(fileSizeBytes) {
+        const sizeMB = fileSizeBytes / (1024 * 1024);
+        if (sizeMB > 200) {
+            setStatus(`⚠️ Warning: ${sizeMB.toFixed(0)} MB file detected. Processing may be slow or cause browser instability. Consider using a smaller file.`, true);
+            setTimeout(() => {
+                if (originalPdfData && !isProcessing) setStatus(`Ready: large file loaded. Proceed with caution.`, false);
+            }, 3000);
+        }
+    }
+    
+    // Override handleFile to add memory warning
+    const finalHandleFile = function(file) {
+        if (!file || file.type !== 'application/pdf') {
+            setStatus("❌ Please select a valid PDF file.", true);
+            resetState();
+            fileNameDisplay.textContent = "Click or drag to upload PDF file (any size)";
+            return;
+        }
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        fileNameDisplay.textContent = `📄 ${file.name} (${sizeMB} MB)`;
+        setStatus(`✅ Loaded: ${file.name} (${sizeMB} MB). Click "Compress & Rebuild".`, false, false);
+        
+        // Show warning for extremely large files (>200MB)
+        if (file.size > 200 * 1024 * 1024) {
+            setStatus(`⚠️ Very large file (${sizeMB} MB). Processing may be slow or cause memory issues. Consider using a lower resolution or splitting the PDF.`, true);
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            originalPdfData = e.target.result;
+            compressBtn.disabled = false;
+            downloadBtn.disabled = true;
+            processedPdfBlob = null;
+            setStatus(`📄 "${file.name}" ready (${sizeMB} MB). Choose compression and press compress.`);
+        };
+        reader.onerror = () => {
+            setStatus("❌ Failed to read file. The file may be corrupted or exceed browser memory limits.", true);
+            resetState();
+        };
+        reader.readAsArrayBuffer(file);
+        currentFileName = file.name.replace(/\.pdf$/i, '') + "_compressed.pdf";
+    };
+    
+    // Replace handlers with final version that includes warning
+    window.handleFile = finalHandleFile;
+    const newFileHandler = finalHandleFile;
+    
+    // Reattach event listeners with final handler
+    fileInput.onchange = (e) => { if (e.target.files && e.target.files[0]) newFileHandler(e.target.files[0]); };
+    uploadZone.ondrop = (e) => {
+        e.preventDefault();
+        uploadZone.style.background = '#f8fafc';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') newFileHandler(file);
+        else setStatus("❌ Please drop a valid PDF file.", true);
+    };
+    
+    // Reset click handler for uploadZone to avoid conflict
+    uploadZone.onclick = () => fileInput.click();
+    
+    console.log("PDF Compressor ready — no file size limits, dynamic memory handling");
 </script>
 </body>
 </html>

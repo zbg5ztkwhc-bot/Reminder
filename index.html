@@ -1,497 +1,729 @@
-<!doctype html>
+
+```html
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>QR Reminder</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
-<style>
-  :root {
-    --bg: #f6f8f7;
-    --card: #ffffff;
-    --border: #e2e8e4;
-    --text: #1b312a;
-    --muted: #6b7a72;
-    --primary: #4a8073;
-    --primary-hover: #3d6d62;
-    --primary-soft: #e8f0ed;
-    --accent: #f0a04b;
-    --accent-soft: #fdf0e1;
-    --danger: #b94a48;
-    --radius: 14px;
-    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100dvh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 16px;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-  }
-  .container { width: 100%; max-width: 460px; }
-  .header { text-align: center; margin-bottom: 28px; }
-  .header h1 {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    color: var(--primary);
-    font-size: 32px;
-    margin: 0 0 6px;
-    letter-spacing: -0.02em;
-  }
-  .header p { color: var(--muted); margin: 0; font-size: 15px; }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    box-shadow: var(--shadow);
-  }
-  label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
-  input[type="text"], input[type="number"] {
-    width: 100%;
-    height: 48px;
-    padding: 0 14px;
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--text);
-    background: #f1f5f3;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    outline: none;
-    transition: border-color .15s, box-shadow .15s;
-  }
-  input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,128,115,.15); }
-  .field { margin-bottom: 16px; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-  .preview-text { font-size: 12px; color: var(--muted); text-align: center; margin: 0 0 16px; }
-  button, .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    height: 48px;
-    padding: 0 16px;
-    font-size: 15px;
-    font-weight: 500;
-    font-family: inherit;
-    color: #fff;
-    background: var(--primary);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background .15s, transform .05s;
-    text-decoration: none;
-  }
-  button:hover:not(:disabled), .btn:hover { background: var(--primary-hover); }
-  button:active { transform: scale(.99); }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  button.outline {
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border);
-  }
-  button.outline:hover { background: #f1f5f3; }
-  button.danger-outline {
-    background: transparent;
-    color: var(--danger);
-    border: 1px solid rgba(185,74,72,.3);
-  }
-  button.danger-outline:hover { background: rgba(185,74,72,.06); }
-  .button-row { display: flex; gap: 10px; }
-  .button-row button { flex: 1; }
-  .qr-frame {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-    margin: 18px 0;
-  }
-  .qr-frame canvas { display: block; }
-  .link-box {
-    background: #f1f5f3;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 16px;
-  }
-  .link-box-label {
-    font-size: 11px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-  .link-box-row { display: flex; gap: 8px; align-items: flex-start; }
-  .link-box code {
-    flex: 1;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px;
-    color: var(--text);
-    word-break: break-all;
-    line-height: 1.5;
-  }
-  .icon-btn {
-    width: 32px; height: 32px;
-    padding: 0;
-    background: transparent;
-    color: var(--muted);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .icon-btn:hover { background: rgba(74,128,115,.1); color: var(--primary); }
-  .scan-title { text-align: center; }
-  .scan-title h2 { font-family: 'Outfit', sans-serif; font-size: 26px; margin: 12px 0 6px; line-height: 1.2; }
-  .scan-title p { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
-  .bell {
-    width: 64px; height: 64px;
-    background: var(--primary-soft);
-    color: var(--primary);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto;
-  }
-  .status-active {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: var(--primary-soft); color: var(--primary);
-    padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 500;
-    margin-bottom: 18px;
-  }
-  .schedule-label {
-    font-size: 11px; font-weight: 500; text-transform: uppercase;
-    letter-spacing: .05em; color: var(--muted); margin: 0 0 10px;
-  }
-  .schedule-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px; background: #f1f5f3; border: 1px solid var(--border);
-    border-radius: 8px; margin-bottom: 8px; font-size: 14px;
-  }
-  .schedule-item .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; display: inline-block; margin-right: 10px; }
-  .schedule-item .time { color: var(--muted); font-size: 13px; }
-  .notice {
-    text-align: center; padding: 8px 0;
-  }
-  .notice .icon-wrap {
-    width: 48px; height: 48px;
-    background: var(--accent-soft); color: var(--accent);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 12px;
-  }
-  .notice h3 { font-size: 17px; margin: 0 0 6px; font-weight: 600; }
-  .notice p { font-size: 14px; color: var(--muted); margin: 0 0 16px; }
-  .footer-link {
-    text-align: center; margin-top: 20px;
-  }
-  .footer-link a {
-    color: var(--muted); font-size: 13px; text-decoration: none; font-weight: 500;
-  }
-  .footer-link a:hover { color: var(--primary); }
-  .hidden { display: none !important; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Bi-hourly Reminder Alarm | Every 2 Hours</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* slight modern feel, but won't break text selection */
+        }
+
+        body {
+            background: linear-gradient(145deg, #0b2b3b 0%, #1a4c5e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 1.5rem;
+        }
+
+        /* main card */
+        .alarm-container {
+            max-width: 620px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(2px);
+            border-radius: 3rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .header {
+            background: #ff8c42;
+            background: linear-gradient(135deg, #ff9a4a, #ff6a2e);
+            padding: 1.8rem 2rem;
+            color: white;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            letter-spacing: -0.5px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 span {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0 12px;
+            border-radius: 100px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .sub {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        /* main content */
+        .content {
+            padding: 2rem 2rem 1.8rem;
+        }
+
+        .info-panel {
+            background: #eef2f5;
+            border-radius: 2rem;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: inset 0 1px 2px #00000010, 0 5px 8px rgba(0,0,0,0.05);
+        }
+
+        .timer-box {
+            background: #1e2f3a;
+            border-radius: 2rem;
+            padding: 0.8rem 1.5rem;
+            text-align: center;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .timer-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            color: #bbd4e3;
+        }
+
+        .timer-value {
+            font-size: 2rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: #f2c94c;
+            line-height: 1.2;
+        }
+
+        .next-alarm-box {
+            background: #d9e3ec;
+            border-radius: 2rem;
+            padding: 0.8rem 1.5rem;
+            flex: 2;
+            text-align: center;
+        }
+
+        .next-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #2c4c5e;
+        }
+
+        .next-time {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e2f3a;
+            font-family: monospace;
+        }
+
+        /* status & actions */
+        .status-card {
+            background: white;
+            border-radius: 1.8rem;
+            margin-bottom: 1.8rem;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+
+        .reminder-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .led {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: #94a3b8;
+            box-shadow: 0 0 2px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+
+        .led.active {
+            background-color: #2ecc71;
+            box-shadow: 0 0 8px #2ecc71;
+        }
+
+        .led.warning {
+            background-color: #e67e22;
+        }
+
+        .status-text {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            border: none;
+            padding: 0.7rem 1.4rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-family: inherit;
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        .btn-start {
+            background: #2c7a47;
+            color: white;
+        }
+        .btn-start:hover {
+            background: #1f5e38;
+        }
+        .btn-stop {
+            background: #b91c1c;
+            color: white;
+        }
+        .btn-stop:hover {
+            background: #991b1b;
+        }
+        .btn-reset {
+            background: #2c3e50;
+            color: white;
+        }
+        .btn-reset:hover {
+            background: #1e2f3a;
+        }
+
+        .alarm-log {
+            margin-top: 1.8rem;
+            background: #f8fafc;
+            border-radius: 1.5rem;
+            padding: 1rem 1.2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .log-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .clear-log {
+            background: none;
+            border: none;
+            font-size: 0.7rem;
+            color: #5b7c99;
+            padding: 0.2rem 0.6rem;
+            box-shadow: none;
+            text-decoration: underline;
+            font-weight: normal;
+        }
+        .clear-log:active {
+            transform: none;
+        }
+
+        .log-list {
+            max-height: 190px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .log-entry {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 2rem;
+            border-left: 5px solid #ff8c42;
+            font-family: monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .log-time {
+            font-weight: 600;
+            color: #1e3a44;
+        }
+        .log-msg {
+            color: #2c3e50;
+        }
+        .badge-alarm {
+            background: #ffddd6;
+            border-radius: 30px;
+            padding: 2px 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #c0392b;
+        }
+
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 1rem;
+            background: #eef2f7;
+            color: #2c6075;
+        }
+
+        @media (max-width: 550px) {
+            .content {
+                padding: 1.5rem;
+            }
+            .timer-value {
+                font-size: 1.6rem;
+            }
+            .next-time {
+                font-size: 1rem;
+            }
+            button {
+                padding: 0.5rem 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-
-  <!-- CREATOR VIEW -->
-  <div id="creator-view">
+<div class="alarm-container">
     <div class="header">
-      <h1>QR Reminder</h1>
-      <p>A quiet, persistent nudge when you need it.</p>
+        <h1>
+            ⏰ 2‑Hour Reminder 
+            <span>alarm</span>
+        </h1>
+        <div class="sub">Recurring alert every 2 hours — stay on track</div>
     </div>
 
-    <div class="card" id="creator-form">
-      <div class="field">
-        <label for="message">What do you want to be reminded of?</label>
-        <input id="message" type="text" placeholder="e.g. Drink water, Take medication" />
-      </div>
-      <div class="row">
-        <div>
-          <label for="interval">Every (hours)</label>
-          <input id="interval" type="number" min="0.1" step="0.5" value="2" />
+    <div class="content">
+        <!-- dynamic countdown & next alarm preview -->
+        <div class="info-panel">
+            <div class="timer-box">
+                <div class="timer-label">⏳ next alarm in</div>
+                <div class="timer-value" id="countdownDisplay">--:--:--</div>
+            </div>
+            <div class="next-alarm-box">
+                <div class="next-label">🔔 next reminder at</div>
+                <div class="next-time" id="nextAlarmTime">—</div>
+            </div>
         </div>
-        <div>
-          <label for="duration">For (hours)</label>
-          <input id="duration" type="number" min="0.1" step="1" value="12" />
+
+        <!-- status and control -->
+        <div class="status-card">
+            <div class="reminder-status">
+                <div class="led" id="statusLed"></div>
+                <div class="status-text" id="statusText">Reminder stopped</div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-start" id="startBtn">▶ Start Alarm</button>
+                <button class="btn-stop" id="stopBtn">⏹ Stop Alarm</button>
+                <button class="btn-reset" id="resetBtn">⟳ Reset Log</button>
+            </div>
         </div>
-      </div>
-      <p class="preview-text" id="preview-text"></p>
-      <button id="generate-btn">Generate QR Code</button>
+
+        <!-- alarm event log: show history of triggered reminders -->
+        <div class="alarm-log">
+            <div class="log-header">
+                <h3>📋 reminder history</h3>
+                <button class="clear-log" id="clearLogBtn">clear all</button>
+            </div>
+            <div class="log-list" id="logList">
+                <div style="text-align: center; color: #6c868e; padding: 12px;">No reminders yet. Start the alarm.</div>
+            </div>
+        </div>
     </div>
-
-    <div class="card hidden" id="creator-result">
-      <div class="scan-title">
-        <h2 id="result-message"></h2>
-        <p id="result-description"></p>
-      </div>
-      <div class="qr-frame" id="qr-frame"></div>
-      <div class="link-box">
-        <div class="link-box-label">Reminder link</div>
-        <div class="link-box-row">
-          <code id="generated-url"></code>
-          <button class="icon-btn" id="copy-btn" title="Copy link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          </button>
-          <a class="icon-btn" id="open-link" title="Open in new tab" target="_blank" rel="noopener noreferrer">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>
-        </div>
-      </div>
-      <div class="button-row">
-        <button id="download-btn">Download PNG</button>
-        <button class="outline" id="reset-btn">Create New</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SCAN VIEW -->
-  <div id="scan-view" class="hidden">
-    <div class="scan-title">
-      <div class="bell">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-      </div>
-      <h2 id="scan-message"></h2>
-      <p id="scan-description"></p>
-    </div>
-
-    <div class="card">
-      <!-- idle -->
-      <div id="scan-idle">
-        <button id="start-btn">Start Reminders</button>
-      </div>
-
-      <!-- active -->
-      <div id="scan-active" class="hidden">
-        <div class="status-active">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span>Reminders are active</span>
-        </div>
-        <div class="schedule-label">Upcoming schedule</div>
-        <div id="schedule-list"></div>
-        <button class="danger-outline" id="stop-btn" style="margin-top:14px;">Stop All Reminders</button>
-      </div>
-
-      <!-- denied -->
-      <div id="scan-denied" class="hidden notice">
-        <div class="icon-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        </div>
-        <h3>Notifications disabled</h3>
-        <p>Enable notifications for this site in your browser settings to receive reminders.</p>
-        <button class="outline" id="retry-btn">Try Again</button>
-      </div>
-
-      <!-- unsupported / iframe -->
-      <div id="scan-unsupported" class="hidden notice">
-        <div class="icon-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        </div>
-        <h3>Open in a real browser tab</h3>
-        <p>Notifications don't work inside embedded previews. Open this page directly to start your reminders. On iPhone, add this page to your Home Screen first.</p>
-        <button id="open-tab-btn">Open in New Tab</button>
-      </div>
-    </div>
-
-    <div class="footer-link">
-      <a href="#" id="back-link">&larr; Create your own reminder</a>
-    </div>
-  </div>
-
+    <footer>
+        💡 Alarm rings every 2 hours (7200 seconds) • Audio alert & browser notification (if allowed)
+    </footer>
 </div>
 
 <script>
-(function() {
-  // ----- Helpers -----
-  const $ = (id) => document.getElementById(id);
-  const params = new URLSearchParams(window.location.search);
-  const reminderParam = params.get('reminder');
-  const intervalParam = parseFloat(params.get('interval'));
-  const durationParam = parseFloat(params.get('duration'));
+    // ----- CORE CONFIGURATION -----
+    const TWO_HOURS_MS = 2 * 60 * 60 * 1000; // 7200000 ms
+    
+    // DOM elements
+    const countdownElem = document.getElementById('countdownDisplay');
+    const nextAlarmTimeElem = document.getElementById('nextAlarmTime');
+    const statusLed = document.getElementById('statusLed');
+    const statusTextElem = document.getElementById('statusText');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+    const logContainer = document.getElementById('logList');
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  };
+    // App state
+    let isActive = false;          // whether the recurring alarm is running
+    let currentTimeoutId = null;   // holds the next scheduled timeout
+    let nextTriggerTimestamp = null; // absolute timestamp (ms) of next alarm
+    let countdownIntervalId = null;  // interval for updating UI countdown
 
-  // ----- Route -----
-  if (reminderParam) {
-    initScanView(
-      reminderParam,
-      !isNaN(intervalParam) && intervalParam > 0 ? intervalParam : 2,
-      !isNaN(durationParam) && durationParam > 0 ? durationParam : 12
-    );
-  } else {
-    initCreatorView();
-  }
+    // ----- AUDIO (web audio simple beep / alarm sound) -----
+    // We create a simple oscillator beep function that works on user interaction.
+    // Since audio context must be resumed after user gesture, we'll manage an AudioContext lazily.
+    let audioCtx = null;
+    let audioAllowed = false; // will be true after first user click (start or any button)
 
-  // ----- Creator -----
-  function initCreatorView() {
-    $('creator-view').classList.remove('hidden');
-    const messageEl = $('message');
-    const intervalEl = $('interval');
-    const durationEl = $('duration');
-    const previewEl = $('preview-text');
-    const generateBtn = $('generate-btn');
-
-    function updatePreview() {
-      const i = parseFloat(intervalEl.value);
-      const d = parseFloat(durationEl.value);
-      if (!isNaN(i) && i > 0 && !isNaN(d) && d >= i) {
-        const count = Math.floor(d / i);
-        previewEl.textContent = `Sends ${count} reminder${count === 1 ? '' : 's'}, every ${i} ${i === 1 ? 'hour' : 'hours'} for ${d} ${d === 1 ? 'hour' : 'hours'}.`;
-      } else {
-        previewEl.textContent = '';
-      }
+    // function to initialize or resume audio context on user interaction
+    function enableAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().then(() => {
+                console.log('AudioContext resumed');
+                audioAllowed = true;
+            }).catch(e => console.warn("Audio resume error", e));
+        } else {
+            audioAllowed = true;
+        }
     }
-    [intervalEl, durationEl].forEach(el => el.addEventListener('input', updatePreview));
-    updatePreview();
 
-    generateBtn.addEventListener('click', generate);
-    messageEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') generate(); });
+    // play alarm sound (short but noticeable beep sequence)
+    function playAlarmSound() {
+        if (!audioCtx) {
+            // if never created, try to create & resume but audio will be silent if not allowed
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        // resume if suspended
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().then(() => {
+                actuallyPlayBeep();
+            }).catch(e => console.log("Audio autoplay prevented, notification only"));
+        } else {
+            actuallyPlayBeep();
+        }
+    }
 
-    function generate() {
-      const msg = messageEl.value.trim();
-      const i = parseFloat(intervalEl.value);
-      const d = parseFloat(durationEl.value);
-      if (!msg || isNaN(i) || i <= 0 || isNaN(d) || d < i) return;
+    function actuallyPlayBeep() {
+        if (!audioCtx) return;
+        // create a short beep: two beeps for reminder style
+        try {
+            const now = audioCtx.currentTime;
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.frequency.value = 880;
+            gain1.gain.value = 0.3;
+            osc1.start();
+            gain1.gain.exponentialRampToValueAtTime(0.00001, now + 0.6);
+            osc1.stop(now + 0.6);
+            
+            // second beep after 0.2 sec
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.frequency.value = 660;
+            gain2.gain.value = 0.25;
+            osc2.start(now + 0.25);
+            gain2.gain.exponentialRampToValueAtTime(0.00001, now + 0.85);
+            osc2.stop(now + 0.85);
+        } catch(e) { console.warn("beep error", e); }
+    }
 
-      const url = new URL(window.location.href);
-      url.search = '';
-      url.searchParams.set('reminder', msg);
-      url.searchParams.set('interval', String(i));
-      url.searchParams.set('duration', String(d));
-      const finalUrl = url.toString();
+    // show browser notification (if permission granted)
+    function sendNotification() {
+        if (!("Notification" in window)) return;
+        if (Notification.permission === "granted") {
+            new Notification("🔔 2-Hour Reminder Alarm", {
+                body: "Time to check in! Your 2-hour reminder has arrived.",
+                icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff8c42'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c.55 0 1 .45 1 1v5l3.5 2.1c.4.24.53.73.29 1.12-.24.4-.73.53-1.12.29l-4-2.4c-.2-.12-.33-.34-.33-.58V7c0-.55.45-1 1-1z'/%3E%3C/svg%3E",
+                silent: false,
+            });
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(perm => {
+                if (perm === "granted") {
+                    new Notification("✅ Reminder Active", { body: "You'll receive alerts every 2 hours." });
+                }
+            });
+        }
+    }
 
-      $('creator-form').classList.add('hidden');
-      $('creator-result').classList.remove('hidden');
-      $('result-message').textContent = msg;
-      $('result-description').textContent =
-        `Print this QR code and place it somewhere visible. When scanned, it sends a reminder every ${i} ${i === 1 ? 'hour' : 'hours'} for ${d} ${d === 1 ? 'hour' : 'hours'}.`;
-      $('generated-url').textContent = finalUrl;
-      $('open-link').setAttribute('href', finalUrl);
+    // Add an entry to the log (timestamp, message)
+    function addLogEntry(message, isAlarm = true) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit', second:'2-digit' });
+        const logDiv = document.createElement('div');
+        logDiv.className = 'log-entry';
+        const innerHtml = `
+            <span class="log-time">${timeStr}</span>
+            <span class="log-msg">${message}</span>
+            ${isAlarm ? '<span class="badge-alarm">🔔 ALARM</span>' : ''}
+        `;
+        logDiv.innerHTML = innerHtml;
+        
+        // if placeholder empty message exists, remove it
+        if (logContainer.children.length === 1 && logContainer.children[0].innerText.includes('No reminders yet')) {
+            logContainer.innerHTML = '';
+        }
+        logContainer.prepend(logDiv); // newest on top
+        // keep log length reasonable (max 40 entries)
+        while (logContainer.children.length > 40) {
+            logContainer.removeChild(logContainer.lastChild);
+        }
+    }
 
-      const frame = $('qr-frame');
-      frame.innerHTML = '';
-      const canvas = document.createElement('canvas');
-      frame.appendChild(canvas);
-      QRCode.toCanvas(canvas, finalUrl, {
-        width: 240, margin: 1, errorCorrectionLevel: 'H',
-        color: { dark: '#1B312A', light: '#FFFFFF' }
-      });
+    function clearLog() {
+        logContainer.innerHTML = '<div style="text-align: center; color: #6c868e; padding: 12px;">No reminders yet. Start the alarm.</div>';
+        addLogEntry("📋 Log cleared by user", false);
+        // but we put a proper neutral message but then we appended cleared log, so adjust to ensure the placeholder appears if needed
+        if (logContainer.children.length === 1 && logContainer.children[0].innerText.includes('No reminders yet')) {
+            // fine
+        } else if (logContainer.children.length === 0) {
+            logContainer.innerHTML = '<div style="text-align: center; color: #6c868e; padding: 12px;">No reminders yet. Start the alarm.</div>';
+        }
+    }
 
-      $('copy-btn').addEventListener('click', () => {
-        navigator.clipboard.writeText(finalUrl).then(() => {
-          const old = $('copy-btn').innerHTML;
-          $('copy-btn').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4a8073" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-          setTimeout(() => { $('copy-btn').innerHTML = old; }, 1500);
+    // trigger alarm (when the 2 hours have passed)
+    function triggerAlarm() {
+        if (!isActive) return; // safety: if alarm stopped but timeout triggered after cleanup
+
+        // 1) add log entry
+        addLogEntry(`⏰ 2-hour reminder alarm rang!`, true);
+        
+        // 2) play sound
+        playAlarmSound();
+        
+        // 3) send browser notification
+        sendNotification();
+        
+        // 4) schedule the next alarm exactly TWO HOURS from NOW (not from previous scheduled time, but real time)
+        //    This ensures consistent 2-hour intervals. Important: cancel old schedule, then re-schedule.
+        if (currentTimeoutId) {
+            clearTimeout(currentTimeoutId);
+            currentTimeoutId = null;
+        }
+        // set next trigger timestamp = now + 2 hours
+        const nowMs = Date.now();
+        nextTriggerTimestamp = nowMs + TWO_HOURS_MS;
+        const delayMs = nextTriggerTimestamp - nowMs;
+        currentTimeoutId = setTimeout(() => {
+            triggerAlarm();
+        }, delayMs);
+        
+        // update next alarm display & restart countdown updater.
+        updateNextAlarmUI();
+        // countdown interval is already running, but we force refresh
+        updateCountdownDisplay();
+    }
+
+    // update UI: next alarm time string and countdown display (called by interval)
+    function updateNextAlarmUI() {
+        if (!isActive || !nextTriggerTimestamp) {
+            nextAlarmTimeElem.textContent = '—';
+            return;
+        }
+        const nextDate = new Date(nextTriggerTimestamp);
+        const timeStr = nextDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second:'2-digit' });
+        const dateStr = nextDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        nextAlarmTimeElem.textContent = `${dateStr} ${timeStr}`;
+    }
+
+    function updateCountdownDisplay() {
+        if (!isActive || !nextTriggerTimestamp) {
+            countdownElem.textContent = '--:--:--';
+            return;
+        }
+        const now = Date.now();
+        const diffMs = nextTriggerTimestamp - now;
+        if (diffMs <= 0) {
+            // edge: will be very close, but triggerAlarm will manage; show 0s
+            countdownElem.textContent = '00:00:00';
+            return;
+        }
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        countdownElem.textContent = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+    }
+
+    // start the recurring alarm (if not active)
+    function startAlarm() {
+        if (isActive) {
+            // already running, maybe just remind user
+            addLogEntry("Reminder already active", false);
+            return;
+        }
+        // request notification permission gracefully (doesn't spam if already)
+        if (Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+        // enable audio on user gesture (start button click)
+        enableAudio();
+        
+        // Cancel any previous remaining timeouts/intervals
+        if (currentTimeoutId) {
+            clearTimeout(currentTimeoutId);
+            currentTimeoutId = null;
+        }
+        if (countdownIntervalId) {
+            clearInterval(countdownIntervalId);
+        }
+        
+        // Set the first alarm to fire in 2 hours from NOW
+        const nowMs = Date.now();
+        nextTriggerTimestamp = nowMs + TWO_HOURS_MS;
+        const delayMs = TWO_HOURS_MS;
+        currentTimeoutId = setTimeout(() => {
+            triggerAlarm();
+        }, delayMs);
+        
+        isActive = true;
+        
+        // start countdown updater (every second)
+        countdownIntervalId = setInterval(() => {
+            if (isActive) {
+                updateCountdownDisplay();
+                updateNextAlarmUI();
+            } else {
+                // if not active, clear display but keep interval safe
+                if (!isActive) {
+                    countdownElem.textContent = '--:--:--';
+                    nextAlarmTimeElem.textContent = '—';
+                }
+            }
+        }, 1000);
+        
+        // update status UI
+        statusLed.classList.add('active');
+        statusTextElem.textContent = 'Reminder ACTIVE · next alarm in 2h';
+        updateNextAlarmUI();
+        updateCountdownDisplay();
+        addLogEntry("🚀 2-hour reminder alarm started. Next alarm in 2 hours.", false);
+        
+        // Optional immediate friendly notification (if permission)
+        if (Notification.permission === "granted") {
+            new Notification("⏲️ Reminder Started", { body: "You will be reminded every 2 hours.", silent: true });
+        }
+    }
+
+    // Stop the recurring alarm
+    function stopAlarm() {
+        if (!isActive) {
+            addLogEntry("Alarm already stopped", false);
+            return;
+        }
+        // clear scheduled timeout
+        if (currentTimeoutId) {
+            clearTimeout(currentTimeoutId);
+            currentTimeoutId = null;
+        }
+        if (countdownIntervalId) {
+            clearInterval(countdownIntervalId);
+            countdownIntervalId = null;
+        }
+        isActive = false;
+        nextTriggerTimestamp = null;
+        
+        // update UI
+        statusLed.classList.remove('active');
+        statusTextElem.textContent = 'Reminder stopped';
+        countdownElem.textContent = '--:--:--';
+        nextAlarmTimeElem.textContent = '—';
+        addLogEntry("⏸ Reminder alarm stopped manually.", false);
+    }
+    
+    // reset only the log (clear history)
+    function resetLog() {
+        clearLog();
+        addLogEntry("Reminder log cleared", false);
+    }
+    
+    // fully reset application (stop, clear log, and reset state)
+    function fullReset() {
+        if (isActive) {
+            stopAlarm(); // also clears intervals & timeouts
+        } else {
+            // ensure no leftover intervals
+            if (countdownIntervalId) clearInterval(countdownIntervalId);
+            if (currentTimeoutId) clearTimeout(currentTimeoutId);
+            countdownIntervalId = null;
+            currentTimeoutId = null;
+            isActive = false;
+            nextTriggerTimestamp = null;
+            statusLed.classList.remove('active');
+            statusTextElem.textContent = 'Reminder stopped';
+            countdownElem.textContent = '--:--:--';
+            nextAlarmTimeElem.textContent = '—';
+        }
+        clearLog(); // full reset of logs
+        addLogEntry("🔄 System reset. Ready to start reminder.", false);
+    }
+
+    // Event bindings and audio init on user first click (any button)
+    function bindEvents() {
+        startBtn.addEventListener('click', () => {
+            // always ensure audio context can be initialized on user gesture
+            enableAudio();
+            startAlarm();
         });
-      });
-
-      $('download-btn').addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.download = 'reminder-qr.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-      });
-
-      $('reset-btn').addEventListener('click', () => {
-        messageEl.value = '';
-        intervalEl.value = '2';
-        durationEl.value = '12';
-        updatePreview();
-        $('creator-result').classList.add('hidden');
-        $('creator-form').classList.remove('hidden');
-      });
+        stopBtn.addEventListener('click', () => {
+            enableAudio(); // just to allow context resume for potential sounds but not required
+            stopAlarm();
+        });
+        resetBtn.addEventListener('click', () => {
+            enableAudio();
+            fullReset();
+        });
+        clearLogBtn.addEventListener('click', () => {
+            enableAudio();
+            resetLog();
+        });
     }
-  }
-
-  // ----- Scan -----
-  function initScanView(reminder, intervalHours, durationHours) {
-    $('scan-view').classList.remove('hidden');
-    $('scan-message').textContent = reminder;
-    $('scan-description').textContent =
-      `We will remind you every ${intervalHours} ${intervalHours === 1 ? 'hour' : 'hours'} for the next ${durationHours} ${durationHours === 1 ? 'hour' : 'hours'}.`;
-
-    const reminderCount = Math.max(1, Math.floor(durationHours / intervalHours));
-    const timeouts = [];
-
-    const inIframe = window.self !== window.top;
-    const noNotifications = !('Notification' in window);
-    if (inIframe || noNotifications) {
-      showState('unsupported');
+    
+    // initial load: ensure UI is clean, no active alarm
+    function init() {
+        bindEvents();
+        isActive = false;
+        nextTriggerTimestamp = null;
+        statusLed.classList.remove('active');
+        statusTextElem.textContent = 'Reminder stopped';
+        countdownElem.textContent = '--:--:--';
+        nextAlarmTimeElem.textContent = '—';
+        clearLog(); // set placeholder
+        addLogEntry("✨ Ready. Press 'Start Alarm' to begin 2-hour reminder cycle.", false);
+        // pre-warm but don't start audio until click
     }
-
-    $('start-btn').addEventListener('click', async () => {
-      if (!('Notification' in window)) { showState('unsupported'); return; }
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') startReminders();
-      else showState('denied');
-    });
-
-    $('retry-btn').addEventListener('click', () => showState('idle'));
-    $('open-tab-btn').addEventListener('click', () => window.open(window.location.href, '_blank'));
-    $('stop-btn').addEventListener('click', stopReminders);
-    $('back-link').addEventListener('click', (e) => {
-      e.preventDefault();
-      const url = new URL(window.location.href);
-      url.search = '';
-      window.location.href = url.toString();
-    });
-
-    function startReminders() {
-      showState('active');
-      const list = $('schedule-list');
-      list.innerHTML = '';
-      const now = new Date();
-      for (let i = 1; i <= reminderCount; i++) {
-        const hoursAhead = i * intervalHours;
-        const when = new Date(now.getTime() + hoursAhead * 3600 * 1000);
-        const item = document.createElement('div');
-        item.className = 'schedule-item';
-        item.innerHTML = `<div><span class="dot"></span>Reminder ${i}</div><span class="time">${formatTime(when)}</span>`;
-        list.appendChild(item);
-
-        const id = window.setTimeout(() => {
-          new Notification('Reminder', {
-            body: `${reminder} (Reminder ${i} of ${reminderCount})`
-          });
-        }, hoursAhead * 3600 * 1000);
-        timeouts.push(id);
-      }
-    }
-
-    function stopReminders() {
-      timeouts.forEach(clearTimeout);
-      timeouts.length = 0;
-      showState('idle');
-    }
-
-    function showState(state) {
-      ['idle', 'active', 'denied', 'unsupported'].forEach(s => {
-        $('scan-' + s).classList.toggle('hidden', s !== state);
-      });
-    }
-
-    window.addEventListener('beforeunload', stopReminders);
-  }
-})();
+    
+    init();
 </script>
 </body>
 </html>
+```

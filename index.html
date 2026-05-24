@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>PDF Compressor · Custom Resolution Scaling · Extract & Merge</title>
-    <!-- PDF.js core and worker for rendering pages -->
+    <title>PDF Compressor · Custom Resolution · Reliable Upload</title>
+    <!-- PDF.js core and worker -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <!-- jspdf for merging images back into a new PDF -->
+    <!-- jspdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
@@ -25,14 +25,12 @@
         }
 
         .card {
-            max-width: 920px;
+            max-width: 950px;
             width: 100%;
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(0px);
+            background: rgba(255, 255, 255, 0.97);
             border-radius: 2rem;
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            transition: all 0.2s ease;
         }
 
         .header {
@@ -46,7 +44,6 @@
             margin: 0;
             font-weight: 600;
             font-size: 1.8rem;
-            letter-spacing: -0.3px;
         }
 
         .header p {
@@ -56,12 +53,12 @@
         }
 
         .content {
-            padding: 2rem 2rem 2rem 2rem;
+            padding: 2rem;
         }
 
         .upload-area {
             background: #f8fafc;
-            border: 2px dashed #94a3b8;
+            border: 2px dashed #3b82f6;
             border-radius: 1.5rem;
             padding: 2rem 1rem;
             text-align: center;
@@ -71,8 +68,8 @@
         }
 
         .upload-area:hover {
-            background: #f1f5f9;
-            border-color: #3b82f6;
+            background: #eff6ff;
+            border-color: #2563eb;
         }
 
         .upload-area input {
@@ -85,9 +82,10 @@
         }
 
         .file-name {
-            font-weight: 500;
+            font-weight: 600;
             color: #0f172a;
             word-break: break-word;
+            margin: 0.5rem 0;
         }
 
         .info-badge {
@@ -104,7 +102,6 @@
             border-radius: 1.25rem;
             padding: 1.2rem 1.5rem;
             margin: 1.2rem 0 1.5rem;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
             border: 1px solid #e2e8f0;
         }
 
@@ -131,26 +128,21 @@
             font-weight: 500;
             cursor: pointer;
             outline: none;
-            transition: 0.1s;
-            font-size: 0.9rem;
         }
 
         .custom-input-wrapper {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: white;
-            cursor: default;
             padding: 0.2rem 0.2rem 0.2rem 1rem;
         }
 
         .custom-input-wrapper input {
-            width: 75px;
+            width: 80px;
             border: none;
             background: #f1f5f9;
-            padding: 0.5rem 0.5rem;
+            padding: 0.5rem;
             border-radius: 2rem;
-            font-weight: 500;
             text-align: center;
             outline: none;
             font-size: 0.9rem;
@@ -161,16 +153,6 @@
             box-shadow: 0 0 0 2px #3b82f6;
         }
 
-        .custom-input-wrapper span {
-            font-size: 0.85rem;
-            color: #334155;
-        }
-
-        select:focus, .custom-input-wrapper:focus-within {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
-        }
-
         .dual-option {
             background: #f8fafc;
             border-radius: 1rem;
@@ -179,7 +161,6 @@
             flex-wrap: wrap;
             align-items: center;
             gap: 1rem;
-            justify-content: space-between;
         }
 
         .action-buttons {
@@ -200,7 +181,6 @@
             color: white;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -212,18 +192,12 @@
 
         button.primary:hover {
             background: #1d4ed8;
-            transform: scale(0.98);
-        }
-
-        button:active {
-            transform: scale(0.96);
         }
 
         button:disabled {
             background: #94a3b8;
             cursor: not-allowed;
-            transform: none;
-            opacity: 0.7;
+            opacity: 0.6;
         }
 
         .status-area {
@@ -234,7 +208,6 @@
             font-size: 0.85rem;
             text-align: center;
             color: #334155;
-            transition: 0.1s;
         }
 
         .error-status {
@@ -247,6 +220,24 @@
             color: #166534;
         }
 
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #2563eb;
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 10px;
+        }
+
         footer {
             text-align: center;
             font-size: 0.7rem;
@@ -254,78 +245,63 @@
             border-top: 1px solid #e2e8f0;
             color: #475569;
         }
-
-        @media (max-width: 640px) {
-            .content {
-                padding: 1.5rem;
-            }
-            .setting-row {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .dual-option {
-                width: 100%;
-            }
-        }
     </style>
 </head>
 <body>
 <div class="card">
     <div class="header">
-        <h1>📄 PDF Compressor · Custom Scale</h1>
-        <p>Extract pages · Downscale resolution by any % · Merge & Download</p>
+        <h1>📄 PDF Compressor</h1>
+        <p>Extract pages · Scale resolution · Merge & Download</p>
     </div>
     <div class="content">
-        <!-- Upload zone -->
         <div class="upload-area" id="uploadZone">
-            <div class="upload-icon">📁📑</div>
-            <div class="file-name" id="fileNameDisplay">Click or drag to upload PDF file (any size)</div>
-            <input type="file" id="fileInput" accept="application/pdf">
-            <div class="info-badge">⬆️ No file size limit | Multi-page supported</div>
+            <div class="upload-icon">📁📄</div>
+            <div class="file-name" id="fileNameDisplay">Click or drag PDF file here</div>
+            <input type="file" id="fileInput" accept=".pdf,application/pdf">
+            <div class="info-badge">✓ No file size limit | Works with any PDF</div>
         </div>
 
-        <!-- Compression settings with dropdown + custom number input -->
         <div class="settings-panel">
             <div class="setting-row">
-                <span class="setting-label">🖼️ Image resolution scaling:</span>
+                <span class="setting-label">🎨 Compression level:</span>
                 <div class="dual-option">
                     <select id="presetSelect">
-                        <option value="0.3">30%  (high compression)</option>
-                        <option value="0.5" selected>50%  (balanced)</option>
-                        <option value="0.7">70%  (light compression)</option>
-                        <option value="0.8">80%  (near original)</option>
-                        <option value="custom">✏️ Custom (%)</option>
+                        <option value="0.3">30% (Maximum compression)</option>
+                        <option value="0.5" selected>50% (Balanced)</option>
+                        <option value="0.7">70% (Light compression)</option>
+                        <option value="0.8">80% (Minimal loss)</option>
+                        <option value="custom">✏️ Custom percentage</option>
                     </select>
-                    
                     <div class="custom-input-wrapper" id="customInputWrapper" style="display: none;">
                         <input type="number" id="customPercent" min="5" max="100" step="1" value="65">
                         <span>%</span>
                     </div>
                 </div>
             </div>
-            <div class="info-badge" style="background:#e6f7ff; margin-top:8px;">🔽 Type any number between 5% and 100% — lower % = smaller file & lower resolution.</div>
+            <div class="info-badge" style="background:#e6f7ff;">💡 Tip: 30-50% gives smallest files, 70-80% preserves quality</div>
         </div>
 
         <div class="action-buttons">
-            <button id="compressBtn" class="primary" disabled>⚡ Compress & Rebuild PDF</button>
-            <button id="downloadBtn" disabled>⬇️ Download Compressed PDF</button>
+            <button id="compressBtn" class="primary" disabled>⚡ Compress PDF</button>
+            <button id="downloadBtn" disabled>⬇️ Download Result</button>
         </div>
-
-        <div id="statusMsg" class="status-area">📌 Ready — upload a PDF, choose compression (preset or type number), then compress.</div>
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div id="statusMsg" class="status-area">📌 Ready — Select a PDF file to begin</div>
     </div>
-    <footer>Process runs locally in browser • PDF.js + jsPDF • No data uploaded • Custom % from 5 to 100</footer>
+    <footer>🔒 Local processing · Your file never leaves your device</footer>
 </div>
 
 <script>
-    // Configure PDF.js worker
+    // Configure PDF.js worker with CDN
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-    // State
+    
     let originalPdfData = null;
     let processedPdfBlob = null;
     let currentFileName = "compressed_document.pdf";
     let isProcessing = false;
-
+    
     // DOM elements
     const fileInput = document.getElementById('fileInput');
     const uploadZone = document.getElementById('uploadZone');
@@ -336,126 +312,126 @@
     const customInputWrapper = document.getElementById('customInputWrapper');
     const customPercentInput = document.getElementById('customPercent');
     const statusDiv = document.getElementById('statusMsg');
-
-    // Helper status
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    
     function setStatus(message, isError = false, isSuccess = false) {
         statusDiv.textContent = message;
         statusDiv.classList.remove('error-status', 'success-status');
         if (isError) statusDiv.classList.add('error-status');
         else if (isSuccess) statusDiv.classList.add('success-status');
-        else statusDiv.classList.remove('error-status', 'success-status');
     }
-
-    // Get active compression scale (as decimal, e.g., 0.5 for 50%)
+    
+    function updateProgress(percent, text) {
+        if (progressBar.style.display === 'none') progressBar.style.display = 'block';
+        progressFill.style.width = percent + '%';
+        if (text) setStatus(text);
+    }
+    
+    function hideProgress() {
+        progressBar.style.display = 'none';
+        progressFill.style.width = '0%';
+    }
+    
     function getActiveScale() {
-        const selected = presetSelect.value;
-        if (selected === 'custom') {
-            let rawValue = customPercentInput.value.trim();
-            let percent = parseFloat(rawValue);
-            if (isNaN(percent)) percent = 65;
-            percent = Math.min(100, Math.max(5, percent));
-            return percent / 100;
-        } else {
-            return parseFloat(selected);
+        if (presetSelect.value === 'custom') {
+            let val = parseFloat(customPercentInput.value);
+            if (isNaN(val)) val = 65;
+            val = Math.min(100, Math.max(5, val));
+            return val / 100;
         }
+        return parseFloat(presetSelect.value);
     }
-
-    // Update custom wrapper visibility
+    
     function toggleCustomInput() {
         if (presetSelect.value === 'custom') {
             customInputWrapper.style.display = 'flex';
         } else {
             customInputWrapper.style.display = 'none';
         }
-        // if processed pdf exists, reset download flag
         if (processedPdfBlob) {
             processedPdfBlob = null;
             downloadBtn.disabled = true;
             if (originalPdfData) {
-                setStatus("⚙️ Compression percentage changed. Re-run compression to apply.", false);
+                setStatus("⚙️ Compression changed. Click 'Compress PDF' again.", false);
                 compressBtn.disabled = false;
             }
         }
     }
-
+    
     presetSelect.addEventListener('change', toggleCustomInput);
     customPercentInput.addEventListener('input', () => {
         if (presetSelect.value === 'custom' && processedPdfBlob) {
             processedPdfBlob = null;
             downloadBtn.disabled = true;
-            if (originalPdfData) {
-                setStatus("✏️ Custom % updated. Press 'Compress & Rebuild' to apply.", false);
-                compressBtn.disabled = false;
-            }
+            if (originalPdfData) compressBtn.disabled = false;
         }
     });
-
-    // Reset state on new file
-    function resetState() {
-        originalPdfData = null;
-        processedPdfBlob = null;
-        compressBtn.disabled = true;
-        downloadBtn.disabled = true;
-        if (!isProcessing) {
-            setStatus("📌 Ready — upload a PDF file to start. No size limits.");
-        }
-    }
-
-    // Handle file upload (NO size limit)
+    
+    // Handle file upload - reliable method
     function handleFile(file) {
-        if (!file || file.type !== 'application/pdf') {
+        if (!file) return;
+        
+        if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
             setStatus("❌ Please select a valid PDF file.", true);
-            resetState();
-            fileNameDisplay.textContent = "Click or drag to upload PDF file (any size)";
             return;
         }
         
         const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
         fileNameDisplay.textContent = `📄 ${file.name} (${sizeMB} MB)`;
-        setStatus(`✅ Loaded: ${file.name} (${sizeMB} MB). Choose compression preset or type custom %, then compress.`, false, false);
+        setStatus(`✅ Loaded: ${file.name} (${sizeMB} MB). Ready to compress.`, false);
         
         const reader = new FileReader();
         reader.onload = function(e) {
-            originalPdfData = e.target.result;
-            compressBtn.disabled = false;
-            downloadBtn.disabled = true;
-            processedPdfBlob = null;
-            setStatus(`📄 "${file.name}" ready (${sizeMB} MB). Compression ratio: ${Math.round(getActiveScale()*100)}% . Press compress.`);
+            try {
+                originalPdfData = e.target.result;
+                compressBtn.disabled = false;
+                downloadBtn.disabled = true;
+                processedPdfBlob = null;
+                setStatus(`✅ "${file.name}" ready. Choose compression level and click Compress.`);
+            } catch (err) {
+                setStatus("❌ Error reading file: " + err.message, true);
+            }
         };
-        reader.onerror = () => {
-            setStatus("❌ Failed to read file. Corrupted or exceeds memory limits.", true);
-            resetState();
+        reader.onerror = function() {
+            setStatus("❌ Failed to read file. The file might be corrupted or too large.", true);
+            originalPdfData = null;
+            compressBtn.disabled = true;
         };
         reader.readAsArrayBuffer(file);
         currentFileName = file.name.replace(/\.pdf$/i, '') + "_compressed.pdf";
     }
-
-    // Drag & drop and click handlers
+    
+    // Drag & drop handlers
     uploadZone.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {
         if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
     });
+    
     uploadZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        uploadZone.style.background = '#e6f0ff';
+        uploadZone.style.background = '#eff6ff';
         uploadZone.style.borderColor = '#2563eb';
     });
     uploadZone.addEventListener('dragleave', () => {
         uploadZone.style.background = '#f8fafc';
-        uploadZone.style.borderColor = '#94a3b8';
+        uploadZone.style.borderColor = '#3b82f6';
     });
     uploadZone.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadZone.style.background = '#f8fafc';
         const file = e.dataTransfer.files[0];
-        if (file && file.type === 'application/pdf') handleFile(file);
-        else setStatus("❌ Please drop a valid PDF file.", true);
+        if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+            handleFile(file);
+        } else {
+            setStatus("❌ Please drop a valid PDF file.", true);
+        }
     });
-
-    // Core compression: extract pages, apply scaling factor (resolution), rebuild PDF
+    
+    // Main compression function
     async function compressAndRebuild() {
         if (!originalPdfData) {
-            setStatus("⚠️ No PDF loaded. Please upload first.", true);
+            setStatus("⚠️ No PDF loaded. Please upload a file first.", true);
             return;
         }
         if (isProcessing) {
@@ -463,48 +439,60 @@
             return;
         }
         
-        let scalePercentDecimal = getActiveScale();
-        // ensure valid range
-        scalePercentDecimal = Math.min(1.0, Math.max(0.05, scalePercentDecimal));
-        const percentValue = Math.round(scalePercentDecimal * 100);
+        const scaleDecimal = getActiveScale();
+        const percentVal = Math.round(scaleDecimal * 100);
         
         isProcessing = true;
         compressBtn.disabled = true;
         downloadBtn.disabled = true;
-        setStatus(`🔄 Processing: extracting pages & scaling resolution to ${percentValue}% ... Large files may take time.`);
+        updateProgress(0, `🔄 Loading PDF & scaling to ${percentVal}%...`);
         
         try {
-            const loadingTask = pdfjsLib.getDocument({ data: originalPdfData, useSystemFonts: true });
+            // Load PDF document
+            const loadingTask = pdfjsLib.getDocument({ 
+                data: originalPdfData.slice(0), 
+                useSystemFonts: true,
+                disableRange: true,
+                disableStream: true 
+            });
             const pdfDoc = await loadingTask.promise;
             const numPages = pdfDoc.numPages;
-            setStatus(`📖 PDF has ${numPages} page(s). Rendering each at ${percentValue}% scale...`);
+            
+            updateProgress(5, `📖 PDF has ${numPages} page(s). Processing each page at ${percentVal}% resolution...`);
             
             const pageImages = [];
             
             for (let i = 1; i <= numPages; i++) {
-                setStatus(`🖼️ Processing page ${i} / ${numPages} (${percentValue}% resolution)...`);
+                const progressPercent = 5 + (i / numPages) * 70;
+                updateProgress(progressPercent, `🖼️ Processing page ${i} of ${numPages} (${percentVal}% scale)...`);
+                
                 const page = await pdfDoc.getPage(i);
-                // Direct render at target scale = scalePercentDecimal (resolution modification)
-                const viewport = page.getViewport({ scale: scalePercentDecimal });
+                const viewport = page.getViewport({ scale: scaleDecimal });
+                
+                // Create canvas at target resolution
                 const canvas = document.createElement('canvas');
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 const ctx = canvas.getContext('2d');
-                const renderContext = {
+                
+                await page.render({
                     canvasContext: ctx,
                     viewport: viewport,
                     background: 'white'
-                };
-                await page.render(renderContext).promise;
-                // JPEG quality 0.85 for decent compression + visual
-                const imageDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                }).promise;
+                
+                // Convert to JPEG with quality 0.82 for good balance
+                const imageDataUrl = canvas.toDataURL('image/jpeg', 0.82);
                 pageImages.push(imageDataUrl);
-                if (i % 5 === 0) await new Promise(r => setTimeout(r, 8));
+                
+                // Small delay to prevent UI freeze
+                if (i % 3 === 0) await new Promise(r => setTimeout(r, 5));
             }
             
-            if (pageImages.length === 0) throw new Error("No pages extracted");
+            if (pageImages.length === 0) throw new Error("No pages could be extracted");
             
-            setStatus(`📦 Merging ${pageImages.length} compressed pages into final PDF...`);
+            updateProgress(80, `📦 Merging ${pageImages.length} pages into final PDF...`);
+            
             const { jsPDF } = window.jspdf;
             let finalPdf = null;
             
@@ -513,52 +501,56 @@
                 const img = new Image();
                 await new Promise((resolve, reject) => {
                     img.onload = resolve;
-                    img.onerror = () => reject(new Error("Image loading failed"));
+                    img.onerror = reject;
                     img.src = imgDataUrl;
                 });
-                const imgWidthPt = img.width;
-                const imgHeightPt = img.height;
+                
+                const imgWidth = img.width;
+                const imgHeight = img.height;
                 
                 if (idx === 0) {
                     finalPdf = new jsPDF({
                         unit: 'pt',
-                        format: [imgWidthPt, imgHeightPt],
-                        orientation: imgWidthPt >= imgHeightPt ? 'landscape' : 'portrait'
+                        format: [imgWidth, imgHeight],
+                        orientation: imgWidth >= imgHeight ? 'landscape' : 'portrait'
                     });
                 } else {
-                    finalPdf.addPage([imgWidthPt, imgHeightPt], imgWidthPt >= imgHeightPt ? 'l' : 'p');
+                    finalPdf.addPage([imgWidth, imgHeight], imgWidth >= imgHeight ? 'l' : 'p');
                 }
-                finalPdf.addImage(imgDataUrl, 'JPEG', 0, 0, imgWidthPt, imgHeightPt, undefined, 'FAST');
+                finalPdf.addImage(imgDataUrl, 'JPEG', 0, 0, imgWidth, imgHeight, undefined, 'FAST');
             }
             
-            if (!finalPdf) throw new Error("PDF assembly failed");
-            
-            const pdfOutput = finalPdf.output('blob');
-            processedPdfBlob = pdfOutput;
+            const pdfBlob = finalPdf.output('blob');
+            processedPdfBlob = pdfBlob;
             downloadBtn.disabled = false;
+            
             const originalSizeMB = (originalPdfData.byteLength / (1024 * 1024)).toFixed(2);
-            const newSizeMB = (pdfOutput.size / (1024 * 1024)).toFixed(2);
-            const reductionPercent = ((1 - pdfOutput.size / originalPdfData.byteLength) * 100).toFixed(1);
-            setStatus(`✅ Success! ${originalSizeMB} MB → ${newSizeMB} MB (${reductionPercent}% reduction) at ${percentValue}% scale. Download your PDF.`, false, true);
+            const newSizeMB = (pdfBlob.size / (1024 * 1024)).toFixed(2);
+            const reduction = ((1 - pdfBlob.size / originalPdfData.byteLength) * 100).toFixed(1);
+            
+            updateProgress(100, `✅ Complete! ${originalSizeMB}MB → ${newSizeMB}MB (${reduction}% smaller) at ${percentVal}% scale.`);
+            setTimeout(hideProgress, 2000);
+            setStatus(`✅ Success! Size reduced by ${reduction}%. Click Download.`, false, true);
+            
         } catch (err) {
-            console.error(err);
-            let errorMsg = err.message || err;
-            if (errorMsg.includes("worker") || errorMsg.includes("Unexpected")) errorMsg = "PDF rendering error. Try a different PDF or refresh.";
-            else if (errorMsg.includes("Out of memory")) errorMsg = "File too large for browser memory. Try lower resolution or smaller PDF.";
-            setStatus(`❌ Compression error: ${errorMsg}`, true);
+            console.error('Compression error:', err);
+            hideProgress();
+            let errorMsg = err.message || String(err);
+            if (errorMsg.includes('Invalid PDF')) errorMsg = 'Invalid or corrupted PDF file.';
+            else if (errorMsg.includes('password')) errorMsg = 'PDF is password protected. Please unlock it first.';
+            else if (errorMsg.includes('range')) errorMsg = 'Error reading PDF. Try a different file.';
+            setStatus(`❌ Compression failed: ${errorMsg}`, true);
             processedPdfBlob = null;
-            downloadBtn.disabled = true;
         } finally {
             isProcessing = false;
-            compressBtn.disabled = !originalPdfData || isProcessing;
+            if (originalPdfData && !isProcessing) compressBtn.disabled = false;
             if (processedPdfBlob) downloadBtn.disabled = false;
-            else if (originalPdfData && !isProcessing) compressBtn.disabled = false;
         }
     }
     
     function downloadPdf() {
         if (!processedPdfBlob) {
-            setStatus("No compressed PDF available. Run compression first.", true);
+            setStatus("No compressed PDF. Please compress first.", true);
             return;
         }
         const url = URL.createObjectURL(processedPdfBlob);
@@ -569,51 +561,22 @@
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        setStatus(`📥 Download started: ${currentFileName}`, false, false);
+        setStatus(`📥 Download started: ${currentFileName}`, false);
     }
     
     compressBtn.addEventListener('click', compressAndRebuild);
     downloadBtn.addEventListener('click', downloadPdf);
     
-    // Enhanced handler for file with proper reset
-    const originalFileHandler = handleFile;
-    function enhancedHandleFile(file) {
-        processedPdfBlob = null;
-        downloadBtn.disabled = true;
-        originalFileHandler(file);
-    }
-    window.handleFile = enhancedHandleFile;
-    handleFile = enhancedHandleFile;
-    
-    // Rebind events
-    fileInput.onchange = (e) => { if (e.target.files && e.target.files[0]) enhancedHandleFile(e.target.files[0]); };
-    uploadZone.ondrop = (e) => {
-        e.preventDefault();
-        uploadZone.style.background = '#f8fafc';
-        const file = e.dataTransfer.files[0];
-        if (file && file.type === 'application/pdf') enhancedHandleFile(file);
-        else setStatus("❌ Drop a valid PDF.", true);
-    };
-    uploadZone.onclick = () => fileInput.click();
-    
-    // Additional check for custom percent boundaries
+    // Validate custom input
     customPercentInput.addEventListener('change', () => {
         let val = parseInt(customPercentInput.value);
         if (isNaN(val)) val = 65;
         val = Math.min(100, Math.max(5, val));
         customPercentInput.value = val;
-        if (presetSelect.value === 'custom' && originalPdfData && !isProcessing) {
-            if (processedPdfBlob) {
-                processedPdfBlob = null;
-                downloadBtn.disabled = true;
-            }
-            setStatus(`Custom compression set to ${val}%. Click compress to apply.`, false);
-            compressBtn.disabled = false;
-        }
     });
     
-    toggleCustomInput(); // init visibility
-    console.log("PDF compressor ready — custom % input enabled (5–100)");
+    toggleCustomInput();
+    setStatus("📌 Ready — Click or drag a PDF file to upload");
 </script>
 </body>
 </html>

@@ -3,95 +3,355 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>PDF Compressor · Large File Optimized · Mahmoud Hamouda</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <title>PDF Compressor · Large File Handler · Mahmoud Hamouda</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif; }
-        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; }
-        .card { background: white; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); }
-        .header { background: linear-gradient(135deg, #0f172a 0%, #2d2a5e 100%); color: white; padding: 28px 32px; text-align: center; position: relative; }
-        .header h1 { font-size: 1.9rem; margin-bottom: 8px; }
-        .privacy-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 40px; padding: 4px 14px; font-size: 0.7rem; margin-top: 10px; }
-        .creator-tag { position: absolute; bottom: 12px; right: 20px; font-size: 0.7rem; background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 20px; }
-        .content { padding: 32px; }
-        .upload-area { border: 3px dashed #a5b4fc; border-radius: 24px; padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: #faf9ff; margin-bottom: 28px; }
-        .upload-area:hover { background: #f0f2ff; border-color: #667eea; }
-        .upload-icon { font-size: 52px; margin-bottom: 12px; }
-        .file-name { font-weight: 600; color: #1e293b; word-break: break-word; margin-top: 8px; }
-        .info-badge { background: #eef2ff; border-radius: 40px; padding: 6px 16px; font-size: 0.75rem; display: inline-block; margin-top: 12px; color: #1e40af; }
-        .privacy-panel { background: #fef9e3; border: 1px solid #fde047; border-radius: 20px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
-        .section-title { font-size: 1.2rem; font-weight: 700; margin: 20px 0 16px 0; color: #0f172a; display: flex; align-items: center; gap: 8px; }
-        .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 10px; }
-        .mode-card { background: white; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
-        .mode-card:hover { border-color: #667eea; transform: translateY(-2px); }
-        .mode-card.selected { border-color: #667eea; background: linear-gradient(145deg, #f5f3ff, #ede9fe); }
-        .mode-title { font-weight: 800; font-size: 1rem; margin-bottom: 6px; color: #1e293b; }
-        .mode-desc { font-size: 0.72rem; color: #475569; }
-        .quality-tag { display: inline-block; padding: 3px 10px; border-radius: 30px; font-size: 0.65rem; font-weight: 700; margin-top: 6px; }
-        .tag-excellent { background: #dcfce7; color: #15803d; }
-        .tag-great { background: #dbeafe; color: #1e40af; }
-        .tag-good { background: #fef9c3; color: #854d0e; }
-        .action-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin: 28px 0 16px; }
-        button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 28px; border-radius: 50px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
-        button.danger-outline { background: transparent; border: 2px solid #ef4444; color: #ef4444; box-shadow: none; }
-        button.danger-outline:hover { background: #fee2e2; }
-        button:disabled { opacity: 0.55; cursor: not-allowed; }
-        .status-area { background: #f1f5f9; border-radius: 20px; padding: 14px 20px; margin-top: 20px; text-align: center; font-size: 0.85rem; color: #1e293b; }
-        .status-success { background: #dcfce7; color: #166534; }
-        .status-error { background: #fee2e2; color: #b91c1c; }
-        .status-warning { background: #fef3c7; color: #92400e; }
-        .progress-container { margin-top: 16px; display: none; }
-        .progress-bar { height: 8px; background: #e2e8f0; border-radius: 20px; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.25s ease; }
-        .progress-text { font-size: 0.75rem; text-align: center; margin-top: 6px; color: #475569; }
-        .contact-bar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .credit { color: #94a3b8; font-size: 0.8rem; }
-        .credit strong { color: #a78bfa; }
-        .whatsapp-link { display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: white; padding: 8px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
-        .whatsapp-link:hover { background: #128C7E; transform: scale(1.02); }
-        footer { text-align: center; font-size: 0.7rem; padding: 18px; background: #faf9ff; color: #64748b; }
-        @media (max-width: 640px) { .content { padding: 20px; } .privacy-panel { flex-direction: column; align-items: flex-start; } .contact-bar { flex-direction: column; text-align: center; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #2d2a5e 100%);
+            color: white;
+            padding: 28px 32px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            margin-bottom: 8px;
+        }
+
+        .creator-tag {
+            position: absolute;
+            bottom: 12px;
+            right: 20px;
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .content {
+            padding: 32px;
+        }
+
+        .upload-area {
+            border: 3px dashed #a5b4fc;
+            border-radius: 24px;
+            padding: 40px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: #faf9ff;
+            margin-bottom: 28px;
+        }
+
+        .upload-area:hover {
+            background: #f0f2ff;
+            border-color: #667eea;
+        }
+
+        .upload-icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #1e293b;
+            word-break: break-word;
+            margin-top: 8px;
+        }
+
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+
+        .warning-box h3 {
+            color: #92400e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-box p {
+            color: #78350f;
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        .alternative-tools {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .alternative-tools h3 {
+            color: #166534;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .tool-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid #dcfce7;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tool-icon {
+            font-size: 24px;
+        }
+
+        .tool-info h4 {
+            font-size: 0.9rem;
+            color: #166534;
+        }
+
+        .tool-info p {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button.secondary {
+            background: #475569;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .status-area {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 14px 20px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+
+        .status-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .progress-container {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.25s ease;
+        }
+
+        .contact-bar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .credit {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .credit strong {
+            color: #a78bfa;
+        }
+
+        .whatsapp-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #25D366;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            padding: 18px;
+            background: #faf9ff;
+            color: #64748b;
+        }
+
+        @media (max-width: 640px) {
+            .content { padding: 20px; }
+            .tool-list { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="card">
         <div class="header">
-            <h1>🔒 PDF Compressor · Large File Optimized</h1>
-            <p>For files over 100MB, use "Balanced 50%" mode to prevent memory issues</p>
-            <div class="privacy-badge">🛡️ No cache · No data persistence</div>
+            <h1>🔒 PDF Compressor · Large File Handler</h1>
+            <p>For files over 100MB, please use desktop software</p>
             <div class="creator-tag">Created by Mahmoud Hamouda</div>
         </div>
         <div class="content">
+
+            <!-- Warning for large files -->
+            <div class="warning-box">
+                <h3>⚠️ Important Notice for Large Files (400MB+)</h3>
+                <p>Your 400MB PDF file is too large for browser-based compression. Web browsers have memory limits (typically 1-2GB) and cannot process PDFs of this size.</p>
+                <p><strong>Recommendation:</strong> Use desktop software like Adobe Acrobat, Ghostscript, or online services for files larger than 100MB.</p>
+            </div>
+
+            <!-- Upload Area -->
             <div class="upload-area" id="uploadZone">
-                <div class="upload-icon">📄🔐</div>
-                <div class="file-name" id="fileNameDisplay">Click or drag PDF file here</div>
+                <div class="upload-icon">📄📁</div>
+                <div class="file-name" id="fileNameDisplay">Click or drag PDF file here (max 100MB for browser compression)</div>
                 <input type="file" id="fileInput" accept="application/pdf">
-                <div class="info-badge">🔒 Files processed 100% locally · Never uploaded</div>
             </div>
 
-            <div class="privacy-panel">
-                <span>🧹 <strong>Privacy Guard</strong>: No localStorage, no cache, no IndexedDB</span>
-                <label class="toggle-switch" style="display:flex; align-items:center; gap:10px;"><input type="checkbox" id="privacyModeToggle" checked><span>Active</span></label>
+            <!-- Alternative Tools Section -->
+            <div class="alternative-tools">
+                <h3>🛠️ Recommended Alternatives for Large Files (400MB+)</h3>
+                <div class="tool-list">
+                    <div class="tool-item">
+                        <div class="tool-icon">📥</div>
+                        <div class="tool-info">
+                            <h4>Ghostscript (Free)</h4>
+                            <p>Command-line tool: gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf input.pdf</p>
+                        </div>
+                    </div>
+                    <div class="tool-item">
+                        <div class="tool-icon">🖥️</div>
+                        <div class="tool-info">
+                            <h4>Adobe Acrobat Pro</h4>
+                            <p>File → Save as Other → Optimized PDF → Choose compression settings</p>
+                        </div>
+                    </div>
+                    <div class="tool-item">
+                        <div class="tool-icon">🌐</div>
+                        <div class="tool-info">
+                            <h4>iLovePDF / SmallPDF</h4>
+                            <p>Online compressors (note: files are uploaded to their servers)</p>
+                        </div>
+                    </div>
+                    <div class="tool-item">
+                        <div class="tool-icon">⚡</div>
+                        <div class="tool-info">
+                            <h4>QPDF (Free)</h4>
+                            <p>Lossless compression: qpdf --linearize --object-streams=generate input.pdf output.pdf</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="section-title"><span>✨</span> Compression Modes</div>
-            <div class="mode-grid" id="modeGrid">
-                <div class="mode-card" data-mode="lossless"><div class="mode-title">🔷 Lossless</div><div class="mode-desc">100% resolution</div><span class="quality-tag tag-excellent">Quality: 100%</span></div>
-                <div class="mode-card" data-mode="premium"><div class="mode-title">🌟 Premium 95%</div><div class="mode-desc">Near lossless</div><span class="quality-tag tag-excellent">Quality: 95%</span></div>
-                <div class="mode-card" data-mode="high"><div class="mode-title">📸 High 80%</div><div class="mode-desc">Great balance</div><span class="quality-tag tag-great">Quality: 80%</span></div>
-                <div class="mode-card selected" data-mode="fifty"><div class="mode-title">⚖️ Balanced 50%</div><div class="mode-desc">Best for large files</div><span class="quality-tag tag-good">Resolution: 50%</span></div>
+            <!-- Compression Settings for smaller files -->
+            <div class="section-title" style="font-size: 1.1rem; font-weight: 700; margin: 20px 0 16px;">
+                <span>⚙️</span> For Smaller PDFs (under 100MB):
+            </div>
+            <div class="mode-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <div class="mode-card" data-mode="light" style="border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; cursor: pointer; text-align: center;">
+                    <div style="font-weight: 700;">✨ Light</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">High quality</div>
+                </div>
+                <div class="mode-card selected" data-mode="balanced" style="border: 2px solid #667eea; background: #f5f3ff; border-radius: 16px; padding: 12px; cursor: pointer; text-align: center;">
+                    <div style="font-weight: 700;">⚖️ Balanced</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">Recommended</div>
+                </div>
+                <div class="mode-card" data-mode="strong" style="border: 2px solid #e2e8f0; border-radius: 16px; padding: 12px; cursor: pointer; text-align: center;">
+                    <div style="font-weight: 700;">📦 Strong</div>
+                    <div style="font-size: 0.7rem; color: #64748b;">Smaller file</div>
+                </div>
             </div>
 
             <div class="action-buttons">
-                <button id="compressBtn" disabled>⚡ Compress PDF</button>
-                <button id="downloadBtn" disabled>📥 Download</button>
-                <button id="clearSessionBtn" class="danger-outline">🗑️ Clear</button>
+                <button id="compressBtn" disabled>⚡ Compress PDF (under 100MB only)</button>
+                <button id="clearBtn" class="secondary">🗑️ Clear</button>
             </div>
 
             <div class="progress-container" id="progressContainer">
@@ -99,14 +359,16 @@
                 <div class="progress-text" id="progressText">Ready</div>
             </div>
 
-            <div class="status-area" id="statusMsg">📌 Ready — Upload a PDF file. For files over 100MB, use "Balanced 50%" mode.</div>
+            <div class="status-area" id="statusMsg">
+                📌 Ready — For files larger than 100MB, please use the desktop alternatives above.
+            </div>
         </div>
 
         <div class="contact-bar">
             <div class="credit">👨‍💻 Developed by <strong>Mahmoud Hamouda</strong> | © 2024</div>
             <a href="https://wa.me/966564700174" target="_blank" class="whatsapp-link">💬 Contact on WhatsApp</a>
         </div>
-        <footer>🔐 For large files (400MB+): Use "Balanced 50%" mode. The browser may need 2-4GB of RAM. If it crashes, try a smaller PDF or lower resolution.</footer>
+        <footer>🔐 Note: Browser memory limits prevent compression of PDFs larger than ~100MB. For 400MB files, please use Ghostscript or Adobe Acrobat.</footer>
     </div>
 </div>
 
@@ -116,309 +378,241 @@
         Storage.prototype.getItem = function() { return null; };
         Storage.prototype.setItem = function() { return; };
         Storage.prototype.removeItem = function() { return; };
-        Storage.prototype.clear = function() { return; };
         sessionStorage.getItem = function() { return null; };
         sessionStorage.setItem = function() { return; };
-        if (window.indexedDB) window.indexedDB.open = function() { return null; };
-        if (navigator.serviceWorker && navigator.serviceWorker.register) {
-            navigator.serviceWorker.register = function() { return Promise.reject(new Error("ServiceWorker disabled")); };
-        }
         try { localStorage.clear(); sessionStorage.clear(); } catch(e) {}
     })();
-    
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    
-    let originalPdfArrayBuffer = null;
-    let processedBlob = null;
-    let currentFileName = "compressed.pdf";
+
+    let selectedFile = null;
     let isProcessing = false;
-    let selectedMode = "fifty";
-    
-    const modesConfig = {
-        lossless: { scale: 1.0, jpegQuality: 0.95, name: "Lossless", resolutionDesc: "100%" },
-        premium:  { scale: 1.0, jpegQuality: 0.85, name: "Premium 95%", resolutionDesc: "100%" },
-        high:     { scale: 0.8, jpegQuality: 0.75, name: "High 80%", resolutionDesc: "80%" },
-        fifty:    { scale: 0.5, jpegQuality: 0.75, name: "Balanced 50%", resolutionDesc: "50%" }
-    };
+    let selectedMode = "balanced";
     
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('fileInput');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
     const compressBtn = document.getElementById('compressBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const clearSessionBtn = document.getElementById('clearSessionBtn');
+    const clearBtn = document.getElementById('clearBtn');
     const statusDiv = document.getElementById('statusMsg');
     const progressContainer = document.getElementById('progressContainer');
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
-    
-    function setStatusMessage(msg, isError = false, isSuccess = false, isWarning = false) {
+
+    function setStatusMessage(msg, isError = false, isSuccess = false) {
         statusDiv.textContent = msg;
-        statusDiv.classList.remove('status-success', 'status-error', 'status-warning');
+        statusDiv.classList.remove('status-success', 'status-error');
         if (isSuccess) statusDiv.classList.add('status-success');
         else if (isError) statusDiv.classList.add('status-error');
-        else if (isWarning) statusDiv.classList.add('status-warning');
     }
-    
+
     function updateProgress(percent, text) {
         if (progressContainer.style.display === 'none') progressContainer.style.display = 'block';
-        const clamped = Math.min(100, Math.max(0, percent));
-        progressFill.style.width = `${clamped}%`;
-        progressText.textContent = text || `${Math.round(clamped)}%`;
-        if (clamped >= 100) {
-            setTimeout(() => { if (!isProcessing) progressContainer.style.display = 'none'; }, 2000);
-        }
+        progressFill.style.width = `${Math.min(100, percent)}%`;
+        progressText.textContent = text || `${Math.round(percent)}%`;
     }
-    
+
+    function hideProgress() {
+        progressContainer.style.display = 'none';
+        progressFill.style.width = '0%';
+    }
+
     function formatFileSize(bytes) {
         if (!bytes) return '0 MB';
         const mb = bytes / (1024 * 1024);
-        if (mb < 1024) return mb.toFixed(2) + ' MB';
-        return (mb / 1024).toFixed(2) + ' GB';
+        return mb.toFixed(2) + ' MB';
     }
-    
-    // Clean up memory
-    function forceGC() {
-        if (window.gc) { window.gc(); }
-        if (performance && performance.measure) { performance.measure('manual-gc'); }
-    }
-    
+
+    // Mode selection
+    document.querySelectorAll('.mode-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.mode-card').forEach(c => {
+                c.style.border = '2px solid #e2e8f0';
+                c.style.background = 'white';
+            });
+            card.style.border = '2px solid #667eea';
+            card.style.background = '#f5f3ff';
+            selectedMode = card.dataset.mode;
+            if (selectedFile && selectedFile.size < 100 * 1024 * 1024) {
+                setStatusMessage(`✅ Mode changed to ${card.querySelector('div:first-child').textContent}. Ready to compress.`);
+                compressBtn.disabled = false;
+            }
+        });
+    });
+
     function handleFile(file) {
-        if (!file) { setStatusMessage("❌ Please select a valid PDF file.", true); return; }
+        if (!file) {
+            setStatusMessage("❌ Please select a PDF file.", true);
+            return;
+        }
+        
         if (!file.name.toLowerCase().endsWith('.pdf')) {
-            setStatusMessage("❌ Please upload a valid PDF file.", true); return;
+            setStatusMessage("❌ Please upload a valid PDF file.", true);
+            return;
         }
         
         const sizeMB = file.size / (1024 * 1024);
-        fileNameDisplay.textContent = `📄 ${file.name} (${formatFileSize(file.size)}) · Loading...`;
-        setStatusMessage(`📥 Loading ${file.name} (${formatFileSize(file.size)})...`);
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            originalPdfArrayBuffer = e.target.result;
-            compressBtn.disabled = false;
-            downloadBtn.disabled = true;
-            processedBlob = null;
-            fileNameDisplay.textContent = `📄 ${file.name} (${formatFileSize(file.size)}) · Ready ✓`;
-            
-            if (sizeMB > 100) {
-                setStatusMessage(`⚠️ Large file (${sizeMB.toFixed(0)}MB). Using "${modesConfig[selectedMode].name}" mode. For best results, keep using Balanced 50%.`, false, false, true);
-            } else {
-                setStatusMessage(`✅ Ready: ${file.name} | Mode: ${modesConfig[selectedMode].name}. Click compress.`, false, true);
-            }
-        };
-        reader.onerror = () => {
-            setStatusMessage("❌ Failed to read file. The file may be corrupted.", true);
-            originalPdfArrayBuffer = null;
+        if (sizeMB > 100) {
+            fileNameDisplay.innerHTML = `📄 ${file.name} (${formatFileSize(file.size)}) - ⚠️ TOO LARGE`;
+            setStatusMessage(`❌ File is ${sizeMB.toFixed(0)}MB. Browser compression only works for files under 100MB. Please use the desktop alternatives above.`, true);
             compressBtn.disabled = true;
-            fileNameDisplay.textContent = "Click or drag PDF file here";
-        };
-        reader.readAsArrayBuffer(file);
-        currentFileName = file.name.replace(/\.pdf$/i, `_${modesConfig[selectedMode].name.toLowerCase()}.pdf`);
+            selectedFile = null;
+            return;
+        }
+        
+        selectedFile = file;
+        fileNameDisplay.innerHTML = `📄 ${file.name} (${formatFileSize(file.size)}) ✓ Ready`;
+        setStatusMessage(`✅ ${file.name} loaded. Click Compress to reduce file size.`, false, true);
+        compressBtn.disabled = false;
     }
-    
-    function initModeSelection() {
-        const cards = document.querySelectorAll('.mode-card');
-        cards.forEach(card => {
-            card.addEventListener('click', () => {
-                const mode = card.dataset.mode;
-                if (mode && modesConfig[mode]) {
-                    selectedMode = mode;
-                    cards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    if (originalPdfArrayBuffer) {
-                        const sizeMB = originalPdfArrayBuffer.byteLength / (1024 * 1024);
-                        if (sizeMB > 100 && mode !== 'fifty') {
-                            setStatusMessage(`⚠️ Large file detected. "${modesConfig[mode].name}" mode may cause memory issues. Consider using "Balanced 50%" mode.`, false, false, true);
-                        } else {
-                            setStatusMessage(`🔄 Mode: ${modesConfig[selectedMode].name}. Ready to compress.`);
-                        }
-                        compressBtn.disabled = false;
-                    }
-                }
-            });
-        });
-    }
-    
+
     async function compressPDF() {
-        if (!originalPdfArrayBuffer) { setStatusMessage("⚠️ No PDF loaded. Upload a file first.", true); return; }
-        if (isProcessing) { setStatusMessage("⏳ Compression in progress. Please wait.", true); return; }
+        if (!selectedFile) {
+            setStatusMessage("⚠️ Please upload a PDF file first.", true);
+            return;
+        }
         
-        const mode = modesConfig[selectedMode];
-        const scale = mode.scale;
-        const jpegQuality = mode.jpegQuality;
-        const fileSizeMB = originalPdfArrayBuffer.byteLength / (1024 * 1024);
+        if (isProcessing) {
+            setStatusMessage("⏳ Compression in progress...", true);
+            return;
+        }
         
-        if (fileSizeMB > 150 && scale === 1.0) {
-            setStatusMessage(`❌ File too large (${fileSizeMB.toFixed(0)}MB) for lossless mode. Please use "Balanced 50%" mode.`, true);
+        const sizeMB = selectedFile.size / (1024 * 1024);
+        if (sizeMB > 100) {
+            setStatusMessage(`❌ File too large (${sizeMB.toFixed(0)}MB). Please use desktop software.`, true);
             return;
         }
         
         isProcessing = true;
         compressBtn.disabled = true;
-        downloadBtn.disabled = true;
-        updateProgress(1, `Processing ${formatFileSize(originalPdfArrayBuffer.byteLength)} file...`);
-        setStatusMessage(`🔄 Compressing with ${mode.name} (${Math.round(scale*100)}% resolution). Large files may take several minutes.`);
+        updateProgress(5, "Loading PDF.js library...");
+        setStatusMessage("🔄 Loading compression engine...");
         
         try {
-            updateProgress(5, 'Opening PDF document...');
-            const loadingTask = pdfjsLib.getDocument({ 
-                data: originalPdfArrayBuffer.slice(0), 
-                useSystemFonts: true, 
-                disableRange: true, 
-                disableStream: true,
-                maxImageSize: -1
+            // Dynamically load PDF.js
+            await new Promise((resolve, reject) => {
+                if (window.pdfjsLib) {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';
+                script.onload = () => {
+                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                    resolve();
+                };
+                script.onerror = reject;
+                document.head.appendChild(script);
             });
+            
+            updateProgress(15, "Reading PDF file...");
+            const arrayBuffer = await selectedFile.arrayBuffer();
+            
+            updateProgress(25, "Loading PDF document...");
+            const loadingTask = window.pdfjsLib.getDocument({ data: arrayBuffer, useSystemFonts: true });
             const pdfDoc = await loadingTask.promise;
             const numPages = pdfDoc.numPages;
-            updateProgress(8, `📄 ${numPages} pages found. Processing...`);
             
-            const pageImages = [];
-            let lastProgressUpdate = 0;
-            
-            for (let i = 1; i <= numPages; i++) {
-                const progressPercent = 8 + ((i - 1) / numPages) * 72;
-                if (progressPercent - lastProgressUpdate > 2 || i === numPages) {
-                    updateProgress(progressPercent, `📄 Page ${i}/${numPages} · ${mode.name}`);
-                    lastProgressUpdate = progressPercent;
-                }
-                
-                try {
-                    const page = await pdfDoc.getPage(i);
-                    const viewport = page.getViewport({ scale: scale });
-                    
-                    const canvas = document.createElement('canvas');
-                    canvas.width = viewport.width;
-                    canvas.height = viewport.height;
-                    const ctx = canvas.getContext('2d');
-                    
-                    await page.render({ canvasContext: ctx, viewport: viewport, background: 'white' }).promise;
-                    
-                    let imageData;
-                    try {
-                        imageData = canvas.toDataURL('image/jpeg', jpegQuality);
-                    } catch(e) {
-                        imageData = canvas.toDataURL('image/jpeg', 0.7);
-                    }
-                    pageImages.push(imageData);
-                    
-                    // Clean up canvas to free memory
-                    canvas.width = 0;
-                    canvas.height = 0;
-                    
-                    // Force garbage collection every 10 pages
-                    if (i % 10 === 0) {
-                        await new Promise(r => setTimeout(r, 50));
-                        forceGC();
-                    }
-                    
-                } catch(pageErr) {
-                    console.warn(`Page ${i} error:`, pageErr);
-                    // Add blank page as fallback
-                    pageImages.push(null);
-                }
+            // Quality settings based on mode
+            let scale, jpegQuality;
+            switch(selectedMode) {
+                case 'light': scale = 1.0; jpegQuality = 0.92; break;
+                case 'balanced': scale = 0.75; jpegQuality = 0.85; break;
+                case 'strong': scale = 0.55; jpegQuality = 0.75; break;
+                default: scale = 0.75; jpegQuality = 0.85;
             }
             
-            updateProgress(82, `📦 Building PDF (${pageImages.length} pages)...`);
+            setStatusMessage(`🔄 Processing ${numPages} pages at ${Math.round(scale*100)}% resolution...`);
+            
+            const pageImages = [];
+            for (let i = 1; i <= numPages; i++) {
+                updateProgress(25 + (i / numPages) * 60, `Page ${i}/${numPages}...`);
+                
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: scale });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                
+                await page.render({ canvasContext: ctx, viewport: viewport, background: 'white' }).promise;
+                const imageData = canvas.toDataURL('image/jpeg', jpegQuality);
+                pageImages.push(imageData);
+                
+                // Clean up
+                canvas.width = 0;
+                canvas.height = 0;
+            }
+            
+            updateProgress(90, "Building compressed PDF...");
+            
+            // Load jsPDF
+            await new Promise((resolve, reject) => {
+                if (window.jspdf) {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            
             const { jsPDF } = window.jspdf;
             let finalPDF = null;
             
             for (let idx = 0; idx < pageImages.length; idx++) {
-                if (idx % 5 === 0) {
-                    updateProgress(82 + (idx / pageImages.length) * 15, `Building page ${idx+1}/${pageImages.length}`);
-                    await new Promise(r => setTimeout(r, 10));
-                }
+                const img = new Image();
+                await new Promise((resolve) => { img.onload = resolve; img.src = pageImages[idx]; });
                 
-                try {
-                    let imgWidth, imgHeight, imgData;
-                    
-                    if (pageImages[idx]) {
-                        const img = new Image();
-                        await new Promise((resolve) => { img.onload = resolve; img.src = pageImages[idx]; });
-                        imgWidth = img.width;
-                        imgHeight = img.height;
-                        imgData = pageImages[idx];
-                    } else {
-                        imgWidth = 595; // A4 width in points
-                        imgHeight = 842;
-                        const blankCanvas = document.createElement('canvas');
-                        blankCanvas.width = imgWidth;
-                        blankCanvas.height = imgHeight;
-                        const blankCtx = blankCanvas.getContext('2d');
-                        blankCtx.fillStyle = 'white';
-                        blankCtx.fillRect(0, 0, imgWidth, imgHeight);
-                        imgData = blankCanvas.toDataURL('image/jpeg', 0.5);
-                    }
-                    
-                    if (idx === 0) {
-                        finalPDF = new jsPDF({ unit: 'pt', format: [imgWidth, imgHeight], orientation: imgWidth >= imgHeight ? 'landscape' : 'portrait' });
-                    } else {
-                        finalPDF.addPage([imgWidth, imgHeight], imgWidth >= imgHeight ? 'l' : 'p');
-                    }
-                    finalPDF.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight, undefined, 'FAST');
-                    
-                } catch(addErr) {
-                    console.warn(`Error adding page ${idx+1}:`, addErr);
+                if (idx === 0) {
+                    finalPDF = new jsPDF({ unit: 'pt', format: [img.width, img.height], orientation: img.width >= img.height ? 'landscape' : 'portrait' });
+                } else {
+                    finalPDF.addPage([img.width, img.height], img.width >= img.height ? 'l' : 'p');
                 }
+                finalPDF.addImage(pageImages[idx], 'JPEG', 0, 0, img.width, img.height);
             }
             
-            updateProgress(98, 'Generating output file...');
             const pdfBlob = finalPDF.output('blob');
-            processedBlob = pdfBlob;
-            downloadBtn.disabled = false;
-            
-            const origMB = (originalPdfArrayBuffer.byteLength / 1048576).toFixed(2);
+            const originalMB = (selectedFile.size / 1048576).toFixed(2);
             const newMB = (pdfBlob.size / 1048576).toFixed(2);
-            const saved = ((1 - pdfBlob.size / originalPdfArrayBuffer.byteLength) * 100).toFixed(1);
+            const saved = ((1 - pdfBlob.size / selectedFile.size) * 100).toFixed(1);
             
-            updateProgress(100, `✅ Complete! ${origMB}MB → ${newMB}MB (${saved}% saved)`);
-            setStatusMessage(`✅ ${mode.name}: ${origMB}MB → ${newMB}MB (${saved}% smaller). Download ready.`, false, true);
+            updateProgress(100, "Complete!");
+            setStatusMessage(`✅ Compressed! ${originalMB}MB → ${newMB}MB (${saved}% smaller)`, false, true);
+            
+            // Download
+            const url = URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = selectedFile.name.replace('.pdf', '_compressed.pdf');
+            a.click();
+            URL.revokeObjectURL(url);
+            
             setTimeout(() => hideProgress(), 2000);
             
         } catch (err) {
-            console.error('Compression error:', err);
+            console.error(err);
             hideProgress();
-            let errorMsg = err.message || String(err);
-            if (errorMsg.includes('Out of memory') || errorMsg.includes('alloc')) {
-                setStatusMessage("❌ Out of memory. The file is too large. Please use 'Balanced 50%' mode or try a smaller PDF.", true);
-            } else if (errorMsg.includes('timeout')) {
-                setStatusMessage("❌ Timeout. File too large. Try using 'Balanced 50%' mode.", true);
-            } else {
-                setStatusMessage(`❌ Error: ${errorMsg.substring(0, 200)}. Try using "Balanced 50%" mode for large files.`, true);
-            }
-            processedBlob = null;
+            setStatusMessage(`❌ Error: ${err.message || 'Compression failed. File may be too complex.'}`, true);
         } finally {
             isProcessing = false;
-            if (originalPdfArrayBuffer && !isProcessing) compressBtn.disabled = false;
-            forceGC();
+            if (selectedFile && selectedFile.size < 100 * 1024 * 1024) {
+                compressBtn.disabled = false;
+            }
         }
     }
-    
-    function hideProgress() { progressContainer.style.display = 'none'; progressFill.style.width = '0%'; }
-    
-    function download() {
-        if (!processedBlob) { setStatusMessage("No compressed PDF. Run compression first.", true); return; }
-        const url = URL.createObjectURL(processedBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = currentFileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        setStatusMessage(`📥 Downloaded: ${currentFileName}`);
-    }
-    
-    function fullSessionReset() {
-        originalPdfArrayBuffer = null;
-        processedBlob = null;
-        compressBtn.disabled = true;
-        downloadBtn.disabled = true;
-        fileNameDisplay.textContent = "Click or drag PDF file here";
-        setStatusMessage("🧹 Cleared. Upload a new PDF.");
-        hideProgress();
+
+    function clearAll() {
+        selectedFile = null;
         fileInput.value = '';
-        forceGC();
+        fileNameDisplay.innerHTML = "Click or drag PDF file here (max 100MB for browser compression)";
+        setStatusMessage("🧹 Cleared. Upload a PDF file (under 100MB).");
+        hideProgress();
+        compressBtn.disabled = true;
     }
-    
+
+    // Event listeners
     uploadZone.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]); });
     uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.background = '#f0f2ff'; });
@@ -428,15 +622,13 @@
         uploadZone.style.background = '#faf9ff';
         const file = e.dataTransfer.files[0];
         if (file && file.name.toLowerCase().endsWith('.pdf')) handleFile(file);
-        else setStatusMessage("❌ Drop a PDF file.", true);
+        else setStatusMessage("❌ Please drop a PDF file.", true);
     });
     
     compressBtn.addEventListener('click', compressPDF);
-    downloadBtn.addEventListener('click', download);
-    clearSessionBtn.addEventListener('click', fullSessionReset);
+    clearBtn.addEventListener('click', clearAll);
     
-    initModeSelection();
-    setStatusMessage("📌 Ready — For files over 100MB, 'Balanced 50%' mode is automatically recommended. Created by Mahmoud Hamouda");
+    setStatusMessage("📌 Ready — For 400MB files, please use Ghostscript or Adobe Acrobat (see alternatives above). Created by Mahmoud Hamouda");
 </script>
 </body>
 </html>

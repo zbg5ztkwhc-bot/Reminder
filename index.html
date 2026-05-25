@@ -661,6 +661,7 @@
         const reader = new FileReader();
         reader.onload = (e) => {
             originalPdfArrayBuffer = e.target.result;
+            // ENABLE compress button after file is loaded
             compressBtn.disabled = false;
             downloadBtn.disabled = true;
             processedBlob = null;
@@ -675,5 +676,173 @@
         currentFileName = file.name.replace(/\.pdf$/i, `_${modesConfig[selectedMode].name.toLowerCase()}_compressed.pdf`);
     }
     
-    // Mode selection
-    function initMode
+    // Mode selection - ONLY updates UI, does NOT disable compress button if file is loaded
+    function initModeSelection() {
+        const cards = document.querySelectorAll('.mode-card');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const mode = card.dataset.mode;
+                if (mode && modesConfig[mode]) {
+                    selectedMode = mode;
+                    cards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    
+                    // Update status message but keep compress button state
+                    if (processedBlob) {
+                        processedBlob = null;
+                        downloadBtn.disabled = true;
+                        if (originalPdfArrayBuffer) {
+                            setStatusMessage(`⚙️ Mode changed to ${modesConfig[selectedMode].name}. Click compress again.`);
+                            // Make sure compress button is enabled if file is loaded
+                            compressBtn.disabled = false;
+                        }
+                    } else if (originalPdfArrayBuffer) {
+                        setStatusMessage(`🔄 Mode: ${modesConfig[selectedMode].name}. Ready to compress.`);
+                        // Ensure compress button is enabled
+                        compressBtn.disabled = false;
+                    }
+                }
+            });
+        });
+        // Select default premium mode
+        const defaultCard = document.querySelector('.mode-card[data-mode="premium"]');
+        if (defaultCard) defaultCard.classList.add('selected');
+        selectedMode = "premium";
+    }
+    
+    // Compression engine
+    async function compressPDF() {
+        if (!originalPdfArrayBuffer) {
+            setStatusMessage("⚠️ No PDF loaded. Upload a file first.", true);
+            return;
+        }
+        if (isProcessing) {
+            setStatusMessage("⏳ Compression already in progress. Please wait.", true);
+            return;
+        }
+        
+        const mode = modesConfig[selectedMode];
+        const scale = mode.scale;
+        const jpegQuality = mode.jpegQuality;
+        const percentRes = Math.round(scale * 100);
+        
+        isProcessing = true;
+        compressBtn.disabled = true;
+        downloadBtn.disabled = true;
+        updateProgress(3, `🔒 Privacy mode: ${privacyToggle.checked ? 'ON (no cache)' : 'OFF'}. Compressing ${mode.name}...`);
+        
+        try {
+            const loadingTask = pdfjsLib.getDocument({ data: originalPdfArrayBuffer.slice(0), useSystemFonts: true });
+            const pdfDoc = await loadingTask.promise;
+            const numPages = pdfDoc.numPages;
+            updateProgress(8, `📖 ${numPages} pages. Rendering with ${percentRes}% resolution impact.`);
+            
+            const pageImages = [];
+            for (let i = 1; i <= numPages; i++) {
+                const progress = 8 + (i / numPages) * 70;
+                updateProgress(progress, `🎨 Page ${i}/${numPages} · ${mode.name}`);
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: scale });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport: viewport, background: 'white' }).promise;
+                let imageData;
+                try {
+                    imageData = canvas.toDataURL(jpegQuality >= 0.9 ? 'image/webp' : 'image/jpeg', jpegQuality);
+                } catch(e) {
+                    imageData = canvas.toDataURL('image/jpeg', jpegQuality);
+                }
+                pageImages.push(imageData);
+                if (i % 3 === 0) await new Promise(r => setTimeout(r, 2));
+            }
+            
+            updateProgress(82, `📦 Building final PDF ...`);
+            const { jsPDF } = window.jspdf;
+            let finalPDF = null;
+            for (let idx = 0; idx < pageImages.length; idx++) {
+                const img = new Image();
+                await new Promise((resolve) => { img.onload = resolve; img.src = pageImages[idx]; });
+                const w = img.width, h = img.height;
+                if (idx === 0) {
+                    finalPDF = new jsPDF({ unit: 'pt', format: [w, h], orientation: w >= h ? 'landscape' : 'portrait' });
+                } else {
+                    finalPDF.addPage([w, h], w >= h ? 'l' : 'p');
+                }
+                finalPDF.addImage(pageImages[idx], 'JPEG', 0, 0, w, h, undefined, 'FAST');
+            }
+            const pdfBlob = finalPDF.output('blob');
+            processedBlob = pdfBlob;
+            downloadBtn.disabled = false;
+            const origMB = (originalPdfArrayBuffer.byteLength / 1048576).toFixed(2);
+            const newMB = (pdfBlob.size / 1048576).toFixed(2);
+            const saved = ((1 - pdfBlob.size / originalPdfArrayBuffer.byteLength) * 100).toFixed(1);
+            updateProgress(100, `✅ Done! ${origMB}MB → ${newMB}MB (${saved}% saved).`);
+            setStatusMessage(`✅ ${mode.name}: ${origMB}MB → ${newMB}MB (${saved}% smaller). Resolution: ${mode.resolutionDesc}. Privacy intact.`, false, true);
+            setTimeout(() => hideProgress(), 2000);
+        } catch (err) {
+            hideProgress();
+            setStatusMessage(`❌ Compression error: ${err.message || err}`, true);
+            processedBlob = null;
+        } finally {
+            isProcessing = false;
+            // Re-enable compress button if file is still loaded
+            if (originalPdfArrayBuffer && !isProcessing) {
+                compressBtn.disabled = false;
+            }
+        }
+    }
+    
+    function download() {
+        if (!processedBlob) { setStatusMessage("No compressed PDF. Run compression first.", true); return; }
+        const url = URL.createObjectURL(processedBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = currentFileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatusMessage(`📥 Downloaded: ${currentFileName} (session-only, no cache stored).`);
+    }
+    
+    // Privacy toggle event
+    privacyToggle.addEventListener('change', (e) => {
+        const enabled = e.target.checked;
+        if (window.setPrivacyMode) window.setPrivacyMode(enabled);
+        if (enabled) {
+            try { localStorage.clear(); sessionStorage.clear(); } catch(ign) {}
+            if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+            setStatusMessage("🛡️ Privacy mode ON — cache, localStorage, IndexedDB & Service Workers blocked.", false);
+        } else {
+            setStatusMessage("⚠️ Privacy mode OFF — site data may be cached. Recommend keeping ON for security.", false);
+        }
+        fullSessionReset();
+    });
+    
+    // Event listeners
+    uploadZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]); });
+    uploadZone.addEventListener('dragover', (e) => e.preventDefault());
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') handleFile(file);
+        else setStatusMessage("❌ Drop a PDF file.", true);
+    });
+    compressBtn.addEventListener('click', compressPDF);
+    downloadBtn.addEventListener('click', download);
+    clearSessionBtn.addEventListener('click', fullSessionReset);
+    
+    // Initialize mode selection
+    initModeSelection();
+    
+    // Initial privacy enforcement
+    if (privacyToggle.checked) {
+        if (window.setPrivacyMode) window.setPrivacyMode(true);
+        try { localStorage.clear(); sessionStorage.clear(); } catch(e) {}
+        if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    }
+    setStatusMessage("🛡️ Privacy mode active: No cache, no site data. Upload your PDF → select mode → compress securely. Created by Mahmoud Hamouda");
+</script>
+</body>
+</html>

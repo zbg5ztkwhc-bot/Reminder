@@ -3,393 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Privacy-First PDF Compressor · Created by Mahmoud Hamouda</title>
-    <!-- Anti-cache meta tags -->
+    <title>Privacy-First PDF Compressor · Large File Support · Created by Mahmoud Hamouda</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- PDF.js core and worker -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <!-- jspdf for merging -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
-        }
-
-        .header {
-            background: linear-gradient(135deg, #0f172a 0%, #2d2a5e 100%);
-            color: white;
-            padding: 28px 32px;
-            text-align: center;
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 1.9rem;
-            margin-bottom: 8px;
-            letter-spacing: -0.3px;
-        }
-
-        .privacy-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.2);
-            border-radius: 40px;
-            padding: 4px 14px;
-            font-size: 0.7rem;
-            margin-top: 10px;
-            font-weight: 500;
-        }
-
-        .creator-tag {
-            position: absolute;
-            bottom: 12px;
-            right: 20px;
-            font-size: 0.7rem;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 500;
-        }
-
-        .content {
-            padding: 32px;
-        }
-
-        .upload-area {
-            border: 3px dashed #a5b4fc;
-            border-radius: 24px;
-            padding: 40px 24px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            background: #faf9ff;
-            margin-bottom: 28px;
-        }
-
-        .upload-area:hover {
-            background: #f0f2ff;
-            border-color: #667eea;
-        }
-
-        .upload-icon {
-            font-size: 52px;
-            margin-bottom: 12px;
-        }
-
-        .file-name {
-            font-weight: 600;
-            color: #1e293b;
-            word-break: break-word;
-            margin-top: 8px;
-        }
-
-        .info-badge {
-            background: #eef2ff;
-            border-radius: 40px;
-            padding: 6px 16px;
-            font-size: 0.75rem;
-            display: inline-block;
-            margin-top: 12px;
-            color: #1e40af;
-        }
-
-        .privacy-panel {
-            background: #fef9e3;
-            border: 1px solid #fde047;
-            border-radius: 20px;
-            padding: 16px 20px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .privacy-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            color: #854d0e;
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 52px;
-            height: 26px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #cbd5e1;
-            transition: 0.3s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.3s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #10b981;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
-        .privacy-note {
-            font-size: 0.75rem;
-            color: #78716c;
-            max-width: 400px;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin: 20px 0 16px 0;
-            color: #0f172a;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .mode-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 14px;
-            margin-bottom: 10px;
-        }
-
-        .mode-card {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 14px 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-
-        .mode-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-        }
-
-        .mode-card.selected {
-            border-color: #667eea;
-            background: linear-gradient(145deg, #f5f3ff, #ede9fe);
-        }
-
-        .mode-title {
-            font-weight: 800;
-            font-size: 1rem;
-            margin-bottom: 6px;
-            color: #1e293b;
-        }
-
-        .mode-desc {
-            font-size: 0.72rem;
-            color: #475569;
-        }
-
-        .quality-tag {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 30px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            margin-top: 6px;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif; }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; }
+        .card { background: white; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); }
+        .header { background: linear-gradient(135deg, #0f172a 0%, #2d2a5e 100%); color: white; padding: 28px 32px; text-align: center; position: relative; }
+        .header h1 { font-size: 1.9rem; margin-bottom: 8px; }
+        .privacy-badge { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 40px; padding: 4px 14px; font-size: 0.7rem; margin-top: 10px; }
+        .creator-tag { position: absolute; bottom: 12px; right: 20px; font-size: 0.7rem; background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 20px; }
+        .content { padding: 32px; }
+        .upload-area { border: 3px dashed #a5b4fc; border-radius: 24px; padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.25s ease; background: #faf9ff; margin-bottom: 28px; }
+        .upload-area:hover { background: #f0f2ff; border-color: #667eea; }
+        .upload-icon { font-size: 52px; margin-bottom: 12px; }
+        .file-name { font-weight: 600; color: #1e293b; word-break: break-word; margin-top: 8px; }
+        .info-badge { background: #eef2ff; border-radius: 40px; padding: 6px 16px; font-size: 0.75rem; display: inline-block; margin-top: 12px; color: #1e40af; }
+        .privacy-panel { background: #fef9e3; border: 1px solid #fde047; border-radius: 20px; padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
+        .privacy-title { display: flex; align-items: center; gap: 10px; font-weight: 700; color: #854d0e; }
+        .toggle-switch { position: relative; display: inline-block; width: 52px; height: 26px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: 0.3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: 0.3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .section-title { font-size: 1.2rem; font-weight: 700; margin: 20px 0 16px 0; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 10px; }
+        .mode-card { background: white; border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .mode-card:hover { border-color: #667eea; transform: translateY(-2px); }
+        .mode-card.selected { border-color: #667eea; background: linear-gradient(145deg, #f5f3ff, #ede9fe); }
+        .mode-title { font-weight: 800; font-size: 1rem; margin-bottom: 6px; color: #1e293b; }
+        .mode-desc { font-size: 0.72rem; color: #475569; }
+        .quality-tag { display: inline-block; padding: 3px 10px; border-radius: 30px; font-size: 0.65rem; font-weight: 700; margin-top: 6px; }
         .tag-excellent { background: #dcfce7; color: #15803d; }
         .tag-great { background: #dbeafe; color: #1e40af; }
         .tag-good { background: #fef9c3; color: #854d0e; }
-
-        .action-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 16px;
-            margin: 28px 0 16px;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        button.danger-outline {
-            background: transparent;
-            border: 2px solid #ef4444;
-            color: #ef4444;
-            box-shadow: none;
-        }
-
-        button.danger-outline:hover {
-            background: #fee2e2;
-            transform: none;
-        }
-
-        button:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-        }
-
-        .status-area {
-            background: #f1f5f9;
-            border-radius: 20px;
-            padding: 14px 20px;
-            margin-top: 20px;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #1e293b;
-        }
-
-        .status-success {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .status-error {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .progress-container {
-            margin-top: 16px;
-            display: none;
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 20px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transition: width 0.25s ease;
-        }
-
-        .progress-text {
-            font-size: 0.75rem;
-            text-align: center;
-            margin-top: 6px;
-            color: #475569;
-        }
-
-        .contact-bar {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .credit {
-            color: #94a3b8;
-            font-size: 0.8rem;
-        }
-
-        .credit strong {
-            color: #a78bfa;
-        }
-
-        .whatsapp-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #25D366;
-            color: white;
-            padding: 8px 20px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-
-        .whatsapp-link:hover {
-            background: #128C7E;
-            transform: scale(1.02);
-        }
-
-        footer {
-            text-align: center;
-            font-size: 0.7rem;
-            padding: 18px;
-            border-top: 1px solid #e2e8f0;
-            color: #64748b;
-            background: #faf9ff;
-        }
-
-        @media (max-width: 640px) {
-            .content { padding: 20px; }
-            .privacy-panel { flex-direction: column; align-items: flex-start; }
-            .contact-bar { flex-direction: column; text-align: center; }
-            .creator-tag { position: static; margin-top: 10px; display: inline-block; }
-            .header { padding-bottom: 20px; }
-        }
+        .action-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin: 28px 0 16px; }
+        button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 28px; border-radius: 50px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        button.danger-outline { background: transparent; border: 2px solid #ef4444; color: #ef4444; box-shadow: none; }
+        button.danger-outline:hover { background: #fee2e2; }
+        button:disabled { opacity: 0.55; cursor: not-allowed; }
+        .status-area { background: #f1f5f9; border-radius: 20px; padding: 14px 20px; margin-top: 20px; text-align: center; font-size: 0.85rem; color: #1e293b; }
+        .status-success { background: #dcfce7; color: #166534; }
+        .status-error { background: #fee2e2; color: #b91c1c; }
+        .status-warning { background: #fef3c7; color: #92400e; }
+        .progress-container { margin-top: 16px; display: none; }
+        .progress-bar { height: 8px; background: #e2e8f0; border-radius: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.25s ease; }
+        .progress-text { font-size: 0.75rem; text-align: center; margin-top: 6px; color: #475569; }
+        .contact-bar { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .credit { color: #94a3b8; font-size: 0.8rem; }
+        .credit strong { color: #a78bfa; }
+        .whatsapp-link { display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: white; padding: 8px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+        .whatsapp-link:hover { background: #128C7E; transform: scale(1.02); }
+        footer { text-align: center; font-size: 0.7rem; padding: 18px; background: #faf9ff; color: #64748b; }
+        @media (max-width: 640px) { .content { padding: 20px; } .privacy-panel { flex-direction: column; align-items: flex-start; } .contact-bar { flex-direction: column; text-align: center; } .creator-tag { position: static; margin-top: 10px; display: inline-block; } .header { padding-bottom: 20px; } }
     </style>
 </head>
 <body>
@@ -398,58 +71,28 @@
         <div class="header">
             <h1>🔒 Privacy-First PDF Compressor</h1>
             <p>Zero cache · No site data persistence · Local processing</p>
-            <div class="privacy-badge">🛡️ Session-only | No localStorage | Auto cleanup</div>
+            <div class="privacy-badge">🛡️ Session-only | Supports large files up to 500MB</div>
             <div class="creator-tag">Created by Mahmoud Hamouda</div>
         </div>
         <div class="content">
             <div class="upload-area" id="uploadZone">
                 <div class="upload-icon">📄🔐</div>
-                <div class="file-name" id="fileNameDisplay">Click or drag PDF (no data saved)</div>
+                <div class="file-name" id="fileNameDisplay">Click or drag PDF (max 500MB recommended)</div>
                 <input type="file" id="fileInput" accept="application/pdf">
                 <div class="info-badge">🔒 Files processed 100% locally · Never uploaded</div>
             </div>
 
-            <div class="privacy-panel" id="privacyPanel">
-                <div class="privacy-title">
-                    <span>🧹</span> 
-                    <span>Privacy Guard: Prevent Cache & Site Data</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="privacyModeToggle" checked>
-                        <span class="slider"></span>
-                    </label>
-                    <span style="font-size: 0.8rem; font-weight: 500;">Active → No persistent storage</span>
-                </div>
-                <div class="privacy-note">
-                    ⚡ Blocks localStorage, sessionStorage, IndexedDB, and disables service worker caching.
-                </div>
+            <div class="privacy-panel">
+                <div class="privacy-title"><span>🧹</span> <span>Privacy Guard: Prevent Cache & Site Data</span></div>
+                <div><label class="toggle-switch"><input type="checkbox" id="privacyModeToggle" checked><span class="slider"></span></label><span style="margin-left:10px;font-size:0.8rem;">Active → No persistent storage</span></div>
             </div>
 
-            <div class="section-title">
-                <span>✨</span> Compression Modes (Quality First)
-            </div>
+            <div class="section-title"><span>✨</span> Compression Modes (Quality First)</div>
             <div class="mode-grid" id="modeGrid">
-                <div class="mode-card" data-mode="lossless">
-                    <div class="mode-title">🔷 Lossless</div>
-                    <div class="mode-desc">100% resolution · Optimal encoding</div>
-                    <span class="quality-tag tag-excellent">Quality: 100%</span>
-                </div>
-                <div class="mode-card" data-mode="premium">
-                    <div class="mode-title">🌟 Premium 98%</div>
-                    <div class="mode-desc">Near lossless, ultra fidelity</div>
-                    <span class="quality-tag tag-excellent">Quality: 98%</span>
-                </div>
-                <div class="mode-card" data-mode="high">
-                    <div class="mode-title">📸 High 85%</div>
-                    <div class="mode-desc">Great balance</div>
-                    <span class="quality-tag tag-great">Quality: 85%</span>
-                </div>
-                <div class="mode-card" data-mode="fifty">
-                    <div class="mode-title">⚖️ Balanced 50%</div>
-                    <div class="mode-desc">50% resolution + smart JPEG</div>
-                    <span class="quality-tag tag-good">Resolution: 50%</span>
-                </div>
+                <div class="mode-card" data-mode="lossless"><div class="mode-title">🔷 Lossless</div><div class="mode-desc">100% resolution · Optimal encoding</div><span class="quality-tag tag-excellent">Quality: 100%</span></div>
+                <div class="mode-card" data-mode="premium"><div class="mode-title">🌟 Premium 98%</div><div class="mode-desc">Near lossless, ultra fidelity</div><span class="quality-tag tag-excellent">Quality: 98%</span></div>
+                <div class="mode-card" data-mode="high"><div class="mode-title">📸 High 85%</div><div class="mode-desc">Great balance</div><span class="quality-tag tag-great">Quality: 85%</span></div>
+                <div class="mode-card" data-mode="fifty"><div class="mode-title">⚖️ Balanced 50%</div><div class="mode-desc">50% resolution + smart JPEG</div><span class="quality-tag tag-good">Resolution: 50%</span></div>
             </div>
 
             <div class="action-buttons">
@@ -459,70 +102,39 @@
             </div>
 
             <div class="progress-container" id="progressContainer">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
                 <div class="progress-text" id="progressText">Ready</div>
             </div>
 
-            <div class="status-area" id="statusMsg">
-                🛡️ Privacy mode ON: No cache, no site data. Upload PDF → choose mode → compress.
-            </div>
+            <div class="status-area" id="statusMsg">🛡️ Privacy mode ON: No cache, no site data. Upload PDF → choose mode → compress.</div>
         </div>
 
         <div class="contact-bar">
-            <div class="credit">
-                👨‍💻 Developed by <strong>Mahmoud Hamouda</strong> | © 2024 All rights reserved
-            </div>
-            <a href="https://wa.me/966564700174" target="_blank" class="whatsapp-link" id="whatsappLink">
-                💬 Contact on WhatsApp
-            </a>
+            <div class="credit">👨‍💻 Developed by <strong>Mahmoud Hamouda</strong> | © 2024</div>
+            <a href="https://wa.me/966564700174" target="_blank" class="whatsapp-link">💬 Contact on WhatsApp</a>
         </div>
-        <footer>🔐 All processing in-memory only. Privacy mode prevents disk cache, localStorage, IndexedDB, and service workers.</footer>
+        <footer>🔐 All processing in-memory only. For large files (400MB+), compression may take several minutes and requires sufficient RAM.</footer>
     </div>
 </div>
 
 <script>
-    // ============================================
-    // COMPLETE CACHE & SITE DATA PREVENTION
-    // ============================================
-    (function enforcePrivacyMode() {
+    // Cache Prevention
+    (function() {
         Storage.prototype.getItem = function() { return null; };
         Storage.prototype.setItem = function() { return; };
         Storage.prototype.removeItem = function() { return; };
         Storage.prototype.clear = function() { return; };
-        
         sessionStorage.getItem = function() { return null; };
         sessionStorage.setItem = function() { return; };
-        sessionStorage.removeItem = function() { return; };
-        sessionStorage.clear = function() { return; };
-        
-        if (window.indexedDB) {
-            window.indexedDB.open = function() { return null; };
-            window.indexedDB.deleteDatabase = function() { return; };
-        }
-        
+        if (window.indexedDB) window.indexedDB.open = function() { return null; };
         if (navigator.serviceWorker && navigator.serviceWorker.register) {
-            navigator.serviceWorker.register = function() {
-                return Promise.reject(new Error("ServiceWorker disabled"));
-            };
+            navigator.serviceWorker.register = function() { return Promise.reject(new Error("ServiceWorker disabled")); };
         }
-        
-        if ('caches' in window) {
-            caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
-        }
-        
         try { localStorage.clear(); sessionStorage.clear(); } catch(e) {}
     })();
     
-    // PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     
-    // WhatsApp API Link
-    const whatsappLink = document.getElementById('whatsappLink');
-    whatsappLink.href = 'https://wa.me/966564700174?text=Hello%20Mahmoud%20Hamouda%2C%20I%20have%20a%20question%20about%20the%20PDF%20Compressor%20tool.';
-    
-    // STATE
     let originalPdfArrayBuffer = null;
     let processedBlob = null;
     let currentFileName = "compressed_secure.pdf";
@@ -536,7 +148,6 @@
         fifty:    { scale: 0.5, jpegQuality: 0.85, name: "Balanced 50%", resolutionDesc: "50% resolution" }
     };
     
-    // DOM elements
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('fileInput');
     const fileNameDisplay = document.getElementById('fileNameDisplay');
@@ -549,11 +160,12 @@
     const progressText = document.getElementById('progressText');
     const privacyToggle = document.getElementById('privacyModeToggle');
     
-    function setStatusMessage(msg, isError = false, isSuccess = false) {
+    function setStatusMessage(msg, isError = false, isSuccess = false, isWarning = false) {
         statusDiv.textContent = msg;
-        statusDiv.classList.remove('status-success', 'status-error');
+        statusDiv.classList.remove('status-success', 'status-error', 'status-warning');
         if (isSuccess) statusDiv.classList.add('status-success');
         else if (isError) statusDiv.classList.add('status-error');
+        else if (isWarning) statusDiv.classList.add('status-warning');
     }
     
     function updateProgress(percent, text) {
@@ -562,66 +174,66 @@
         progressFill.style.width = `${clamped}%`;
         progressText.textContent = text || `${Math.round(clamped)}%`;
         if (clamped >= 100) {
-            setTimeout(() => {
-                if (!isProcessing) progressContainer.style.display = 'none';
-            }, 1800);
+            setTimeout(() => { if (!isProcessing) progressContainer.style.display = 'none'; }, 2000);
         }
     }
     
-    function hideProgress() {
-        progressContainer.style.display = 'none';
-        progressFill.style.width = '0%';
-    }
+    function hideProgress() { progressContainer.style.display = 'none'; progressFill.style.width = '0%'; }
     
     function fullSessionReset() {
         originalPdfArrayBuffer = null;
         processedBlob = null;
         compressBtn.disabled = true;
         downloadBtn.disabled = true;
-        fileNameDisplay.textContent = "Click or drag PDF (no data saved)";
-        setStatusMessage("🧹 Session cleared. All PDF data wiped from memory.", false);
+        fileNameDisplay.textContent = "Click or drag PDF (max 500MB recommended)";
+        setStatusMessage("🧹 Session cleared. All PDF data wiped from memory.");
         hideProgress();
         fileInput.value = '';
+        if (window.gc) window.gc();
     }
     
-    // FILE UPLOAD HANDLER - FIXED
+    function formatFileSize(bytes) {
+        if (!bytes) return '0 MB';
+        const mb = bytes / (1024 * 1024);
+        if (mb < 1024) return mb.toFixed(2) + ' MB';
+        return (mb / 1024).toFixed(2) + ' GB';
+    }
+    
     function handleFile(file) {
-        console.log('File selected:', file ? file.name : 'null');
-        
-        if (!file) {
-            setStatusMessage("❌ Please select a valid PDF file.", true);
-            return;
-        }
-        
+        if (!file) { setStatusMessage("❌ Please select a valid PDF file.", true); return; }
         if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-            setStatusMessage("❌ Please upload a valid PDF file.", true);
-            return;
+            setStatusMessage("❌ Please upload a valid PDF file.", true); return;
         }
         
-        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-        fileNameDisplay.textContent = `📄 ${file.name} (${sizeMB} MB) · Memory only`;
-        setStatusMessage(`✅ Loading: ${file.name} (${sizeMB} MB)...`);
+        const sizeMB = file.size / (1024 * 1024);
+        if (sizeMB > 500) {
+            setStatusMessage(`⚠️ Warning: ${sizeMB.toFixed(1)}MB file. Large files may cause memory issues. Consider using a lower compression mode.`, false, false, true);
+        } else {
+            setStatusMessage(`✅ Loading: ${file.name} (${formatFileSize(file.size)})...`);
+        }
+        
+        fileNameDisplay.textContent = `📄 ${file.name} (${formatFileSize(file.size)}) · Processing...`;
         
         const reader = new FileReader();
         reader.onload = (e) => {
-            console.log('File loaded successfully, size:', e.target.result.byteLength);
             originalPdfArrayBuffer = e.target.result;
             compressBtn.disabled = false;
             downloadBtn.disabled = true;
             processedBlob = null;
-            setStatusMessage(`✅ Ready: ${file.name} | Mode: ${modesConfig[selectedMode].name}. Click compress.`, false);
+            fileNameDisplay.textContent = `📄 ${file.name} (${formatFileSize(file.size)}) · Ready`;
+            setStatusMessage(`✅ Ready: ${file.name} | Mode: ${modesConfig[selectedMode].name}. Click compress.`, false, true);
         };
         reader.onerror = (err) => {
             console.error('FileReader error:', err);
-            setStatusMessage("❌ Failed to read file. The file may be corrupted or too large.", true);
+            setStatusMessage("❌ Failed to read file. The file may be corrupted or too large for browser memory.", true);
             originalPdfArrayBuffer = null;
             compressBtn.disabled = true;
+            fileNameDisplay.textContent = "Click or drag PDF (max 500MB recommended)";
         };
         reader.readAsArrayBuffer(file);
         currentFileName = file.name.replace(/\.pdf$/i, `_${modesConfig[selectedMode].name.toLowerCase()}_compressed.pdf`);
     }
     
-    // Mode selection
     function initModeSelection() {
         const cards = document.querySelectorAll('.mode-card');
         cards.forEach(card => {
@@ -631,64 +243,59 @@
                     selectedMode = mode;
                     cards.forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
-                    
-                    if (processedBlob) {
-                        processedBlob = null;
-                        downloadBtn.disabled = true;
-                        if (originalPdfArrayBuffer) {
-                            setStatusMessage(`⚙️ Mode changed to ${modesConfig[selectedMode].name}. Click compress again.`);
-                            compressBtn.disabled = false;
-                        }
-                    } else if (originalPdfArrayBuffer) {
-                        setStatusMessage(`🔄 Mode: ${modesConfig[selectedMode].name}. Ready to compress.`);
+                    if (originalPdfArrayBuffer) {
+                        setStatusMessage(`🔄 Mode changed to ${modesConfig[selectedMode].name}. Ready to compress.`);
                         compressBtn.disabled = false;
                     }
                 }
             });
         });
-        const defaultCard = document.querySelector('.mode-card[data-mode="premium"]');
-        if (defaultCard) defaultCard.classList.add('selected');
+        document.querySelector('.mode-card[data-mode="premium"]').classList.add('selected');
         selectedMode = "premium";
     }
     
-    // Compression engine
     async function compressPDF() {
-        if (!originalPdfArrayBuffer) {
-            setStatusMessage("⚠️ No PDF loaded. Upload a file first.", true);
-            return;
-        }
-        if (isProcessing) {
-            setStatusMessage("⏳ Compression already in progress. Please wait.", true);
-            return;
-        }
+        if (!originalPdfArrayBuffer) { setStatusMessage("⚠️ No PDF loaded. Upload a file first.", true); return; }
+        if (isProcessing) { setStatusMessage("⏳ Compression already in progress. Please wait.", true); return; }
         
         const mode = modesConfig[selectedMode];
         const scale = mode.scale;
         const jpegQuality = mode.jpegQuality;
         const percentRes = Math.round(scale * 100);
+        const fileSizeMB = originalPdfArrayBuffer.byteLength / (1024 * 1024);
+        
+        if (fileSizeMB > 300 && scale === 1.0) {
+            setStatusMessage(`⚠️ Large file (${fileSizeMB.toFixed(0)}MB) with lossless mode may cause memory issues. Consider using 50% mode for better results.`, false, false, true);
+            await new Promise(r => setTimeout(r, 1000));
+        }
         
         isProcessing = true;
         compressBtn.disabled = true;
         downloadBtn.disabled = true;
-        updateProgress(3, `Compressing ${mode.name}...`);
+        updateProgress(2, `Starting compression of ${fileSizeMB.toFixed(0)}MB file...`);
+        setStatusMessage(`🔄 Compressing ${mode.name} mode at ${percentRes}% resolution. This may take several minutes for large files.`);
         
         try {
-            const loadingTask = pdfjsLib.getDocument({ data: originalPdfArrayBuffer.slice(0), useSystemFonts: true });
+            updateProgress(5, 'Loading PDF document...');
+            const loadingTask = pdfjsLib.getDocument({ data: originalPdfArrayBuffer.slice(0), useSystemFonts: true, disableRange: true, disableStream: true });
             const pdfDoc = await loadingTask.promise;
             const numPages = pdfDoc.numPages;
-            updateProgress(8, `📖 ${numPages} pages. Rendering at ${percentRes}%...`);
+            updateProgress(8, `📖 ${numPages} pages. Processing...`);
             
             const pageImages = [];
             for (let i = 1; i <= numPages; i++) {
                 const progress = 8 + (i / numPages) * 70;
                 updateProgress(progress, `🎨 Page ${i}/${numPages} · ${mode.name}`);
+                
                 const page = await pdfDoc.getPage(i);
                 const viewport = page.getViewport({ scale: scale });
                 const canvas = document.createElement('canvas');
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 const ctx = canvas.getContext('2d');
+                
                 await page.render({ canvasContext: ctx, viewport: viewport, background: 'white' }).promise;
+                
                 let imageData;
                 try {
                     imageData = canvas.toDataURL(jpegQuality >= 0.9 ? 'image/webp' : 'image/jpeg', jpegQuality);
@@ -696,12 +303,20 @@
                     imageData = canvas.toDataURL('image/jpeg', jpegQuality);
                 }
                 pageImages.push(imageData);
-                if (i % 3 === 0) await new Promise(r => setTimeout(r, 2));
+                
+                canvas.width = 1;
+                canvas.height = 1;
+                
+                if (i % 5 === 0) {
+                    await new Promise(r => setTimeout(r, 10));
+                    if (window.gc) window.gc();
+                }
             }
             
-            updateProgress(82, `📦 Building final PDF...`);
+            updateProgress(82, `📦 Building final PDF (${pageImages.length} pages)...`);
             const { jsPDF } = window.jspdf;
             let finalPDF = null;
+            
             for (let idx = 0; idx < pageImages.length; idx++) {
                 const img = new Image();
                 await new Promise((resolve) => { img.onload = resolve; img.src = pageImages[idx]; });
@@ -712,34 +327,41 @@
                     finalPDF.addPage([w, h], w >= h ? 'l' : 'p');
                 }
                 finalPDF.addImage(pageImages[idx], 'JPEG', 0, 0, w, h, undefined, 'FAST');
+                if (idx % 5 === 0) await new Promise(r => setTimeout(r, 5));
             }
+            
+            updateProgress(95, 'Generating output file...');
             const pdfBlob = finalPDF.output('blob');
             processedBlob = pdfBlob;
             downloadBtn.disabled = false;
+            
             const origMB = (originalPdfArrayBuffer.byteLength / 1048576).toFixed(2);
             const newMB = (pdfBlob.size / 1048576).toFixed(2);
             const saved = ((1 - pdfBlob.size / originalPdfArrayBuffer.byteLength) * 100).toFixed(1);
-            updateProgress(100, `✅ Done! ${origMB}MB → ${newMB}MB`);
-            setStatusMessage(`✅ ${mode.name}: ${origMB}MB → ${newMB}MB (${saved}% smaller)`, false, true);
+            
+            updateProgress(100, `✅ Complete! ${origMB}MB → ${newMB}MB (${saved}% saved)`);
+            setStatusMessage(`✅ ${mode.name}: ${origMB}MB → ${newMB}MB (${saved}% smaller). Download ready.`, false, true);
             setTimeout(() => hideProgress(), 2000);
+            
         } catch (err) {
             console.error('Compression error:', err);
             hideProgress();
-            setStatusMessage(`❌ Compression error: ${err.message || err}`, true);
+            if (err.message && err.message.includes('Out of memory')) {
+                setStatusMessage("❌ Out of memory. The file is too large for your browser. Try using 'Balanced 50%' mode or a smaller PDF.", true);
+            } else if (err.message && err.message.includes('timeout')) {
+                setStatusMessage("❌ Processing timeout. The file is too large. Try a smaller PDF or different compression mode.", true);
+            } else {
+                setStatusMessage(`❌ Compression error: ${err.message || err}. Try using a lower resolution mode.`, true);
+            }
             processedBlob = null;
         } finally {
             isProcessing = false;
-            if (originalPdfArrayBuffer && !isProcessing) {
-                compressBtn.disabled = false;
-            }
+            if (originalPdfArrayBuffer && !isProcessing) compressBtn.disabled = false;
         }
     }
     
     function download() {
-        if (!processedBlob) { 
-            setStatusMessage("No compressed PDF. Run compression first.", true); 
-            return; 
-        }
+        if (!processedBlob) { setStatusMessage("No compressed PDF. Run compression first.", true); return; }
         const url = URL.createObjectURL(processedBlob);
         const a = document.createElement('a');
         a.href = url;
@@ -749,47 +371,25 @@
         setStatusMessage(`📥 Downloaded: ${currentFileName}`);
     }
     
-    // Event listeners
     uploadZone.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => {
-        console.log('File input changed', e.target.files);
-        if (e.target.files && e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
-    });
-    
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.style.background = '#f0f2ff';
-    });
-    uploadZone.addEventListener('dragleave', () => {
-        uploadZone.style.background = '#faf9ff';
-    });
+    fileInput.addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]); });
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.style.background = '#f0f2ff'; });
+    uploadZone.addEventListener('dragleave', () => { uploadZone.style.background = '#faf9ff'; });
     uploadZone.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadZone.style.background = '#faf9ff';
         const file = e.dataTransfer.files[0];
-        if (file && file.type === 'application/pdf') {
-            handleFile(file);
-        } else {
-            setStatusMessage("❌ Drop a PDF file.", true);
-        }
+        if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) handleFile(file);
+        else setStatusMessage("❌ Drop a PDF file.", true);
     });
     
     compressBtn.addEventListener('click', compressPDF);
     downloadBtn.addEventListener('click', download);
     clearSessionBtn.addEventListener('click', fullSessionReset);
-    privacyToggle.addEventListener('change', (e) => {
-        if (e.target.checked) {
-            setStatusMessage("🛡️ Privacy mode ON — cache, localStorage blocked.", false);
-        } else {
-            setStatusMessage("⚠️ Privacy mode OFF — site data may be cached.", false);
-        }
-        fullSessionReset();
-    });
+    privacyToggle.addEventListener('change', () => setStatusMessage(privacyToggle.checked ? "🛡️ Privacy mode ON" : "⚠️ Privacy mode OFF"));
     
     initModeSelection();
-    setStatusMessage("🛡️ Privacy mode active: No cache, no site data. Upload your PDF → select mode → compress securely. Created by Mahmoud Hamouda");
+    setStatusMessage("🛡️ Privacy mode active: No cache, no site data. For large files (400MB+), use 'Balanced 50%' mode for best results. Created by Mahmoud Hamouda");
 </script>
 </body>
 </html>
